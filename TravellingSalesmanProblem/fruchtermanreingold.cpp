@@ -78,7 +78,8 @@ void FruchtermanReingold::iterate(QList<QVector2D> &vertices, double idealDistan
 
         /// Calculate attraction force
         for(int j = 0; j < vertices.count(); ++j) {
-            if(j <= i) {
+            /// Skip repeating and non adj vertices
+            if(j <= i || m_GraphMatrix.at(i).at(j) == 0) {
                 continue;
             }
             QVector2D delta(vertices.at(i) - vertices.at(j));
