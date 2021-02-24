@@ -39,9 +39,9 @@ void FruchtermanReingold::start() {
     double temp = 8 * sqrt(vertices.count());
 
     /// Start algorithm
-    for(int i = 0; i < 15; ++i) {
+    for(int i = 0; i < 100; ++i) {
         iterate(vertices, idealDistance, temp);
-        temp *= 0.7;
+        temp *= 0.88;
         if(m_ShowSteps) {
             emit layoutChanged();
         }
@@ -52,6 +52,21 @@ void FruchtermanReingold::start() {
     m_Vertices.reserve(vertices.count());
     for(auto vec : vertices) {
         m_Vertices.push_back(vec.toPointF());
+    }
+    /// Create edges
+    m_Edges.clear();
+    for(int i = 0; i < m_GraphMatrix.count(); ++i) {
+        for(int j = i; j < m_GraphMatrix.count(); ++j) {
+            if(!m_GraphMatrix.at(i).at(j) || i == j) {
+                continue;
+            }
+            edge_t edge;
+            edge.x1 = m_Vertices.at(i).x();
+            edge.y1 = m_Vertices.at(i).y();
+            edge.x2 = m_Vertices.at(j).x();
+            edge.y2 = m_Vertices.at(j).y();
+            m_Edges.push_back(edge);
+        }
     }
     emit layoutChanged();
 }
@@ -126,16 +141,16 @@ void FruchtermanReingold::iterate(QList<QVector2D> &vertices, double idealDistan
 
         /// Check if vertex out of bound
         if(vertices[i].x() > m_AreaWidth) {
-            vertices[i].setX(m_AreaWidth);
+            vertices[i].setX(m_AreaWidth - 30);
         }
         if(vertices[i].x() < 0) {
-            vertices[i].setX(0);
+            vertices[i].setX(30);
         }
         if(vertices[i].y() > m_AreaHeight) {
-            vertices[i].setY(m_AreaHeight);
+            vertices[i].setY(m_AreaHeight - 30);
         }
         if(vertices[i].y() < 0) {
-            vertices[i].setY(0);
+            vertices[i].setY(30);
         }
     }
 }

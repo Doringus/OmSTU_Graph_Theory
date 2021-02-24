@@ -6,6 +6,11 @@
 
 using GraphMatrix = QList<QList<double>>;
 
+struct edge_t {
+    double x1, y1;
+    double x2, y2;
+};
+
 /*!
  * \brief Base class for all drawing algs
  */
@@ -43,9 +48,18 @@ public:
      * \brief Function returns vertices placed by alg
      * \return list of vertices
      */
-    QList<QPointF> getVertices() {
+    QList<QPointF> getVertices() const {
         return m_Vertices;
     }
+
+    /*!
+     * \brief Function returns edges
+     * \return list of edges
+     */
+    QList<edge_t> getEdges() const {
+        return m_Edges;
+    }
+
 signals:
     void showStepsChanged();
     void adjacencyMatrixChanged();
@@ -60,4 +74,5 @@ protected:
     bool m_ShowSteps;
     GraphMatrix m_GraphMatrix;
     QList<QPointF> m_Vertices;
+    QList<edge_t> m_Edges;
 };
