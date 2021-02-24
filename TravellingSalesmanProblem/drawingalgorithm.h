@@ -2,9 +2,9 @@
 
 #include <QObject>
 #include <QList>
+#include <QPointF>
 
 using GraphMatrix = QList<QList<double>>;
-
 
 /*!
  * \brief Base class for all drawing algs
@@ -38,6 +38,14 @@ public:
      * \brief Function starts algorithm
      */
     Q_INVOKABLE virtual void start() = 0;
+
+    /*!
+     * \brief Function returns vertices placed by alg
+     * \return list of vertices
+     */
+    QList<QPointF> getVertices() {
+        return m_Vertices;
+    }
 signals:
     void showStepsChanged();
     void adjacencyMatrixChanged();
@@ -51,4 +59,5 @@ signals:
 protected:
     bool m_ShowSteps;
     GraphMatrix m_GraphMatrix;
+    QList<QPointF> m_Vertices;
 };

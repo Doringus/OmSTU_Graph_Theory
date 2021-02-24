@@ -4,12 +4,23 @@
 
 class FruchtermanReingold : public DrawingAlgorithm {
     Q_OBJECT
+    Q_PROPERTY(double width READ getWidth WRITE setWidth NOTIFY widthChanged)
+    Q_PROPERTY(double height READ getHeight WRITE setHeight NOTIFY heightChanged)
 public:
     FruchtermanReingold(QObject *parent = nullptr);
 
     Q_INVOKABLE void start() override;
 
     void setArea(double width, double height);
+
+    double getWidth() const;
+    void setWidth(double width);
+
+    double getHeight() const;
+    void setHeight(double height);
+signals:
+    void widthChanged();
+    void heightChanged();
 private:
     /*!
      * \brief Function calculates "ideal"
@@ -32,9 +43,5 @@ private:
      * \brief Properties used for calculating "ideal" distance between vertices
      */
     double m_AreaWidth, m_AreaHeight;
-
-    /*!
-     * \brief Property for caping displacement
-     */
 };
 

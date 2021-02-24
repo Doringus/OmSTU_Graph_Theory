@@ -4,6 +4,7 @@
 #include <QPointF>
 #include <QRandomGenerator>
 #include <QVector2D>
+#include <QThread>
 
 #include <cmath>
 
@@ -37,18 +38,42 @@ void FruchtermanReingold::start() {
 
     double temp = 8 * sqrt(vertices.count());
 
-    for(int i = 0; i < 10; ++i) {
+    /// Start algorithm
+    for(int i = 0; i < 15; ++i) {
         iterate(vertices, idealDistance, temp);
         temp *= 0.7;
         if(m_ShowSteps) {
             emit layoutChanged();
         }
     }
+
+    /// Fill internal list
+    m_Vertices.clear();
+    m_Vertices.reserve(vertices.count());
+    for(auto vec : vertices) {
+        m_Vertices.push_back(vec.toPointF());
+    }
     emit layoutChanged();
 }
 
 void FruchtermanReingold::setArea(double width, double height) {
     m_AreaWidth = width;
+    m_AreaHeight = height;
+}
+
+double FruchtermanReingold::getWidth() const {
+    return m_AreaWidth;
+}
+
+void FruchtermanReingold::setWidth(double width) {
+    m_AreaWidth = width;
+}
+
+double FruchtermanReingold::getHeight() const {
+    return m_AreaHeight;
+}
+
+void FruchtermanReingold::setHeight(double height) {
     m_AreaHeight = height;
 }
 
@@ -107,7 +132,7 @@ void FruchtermanReingold::iterate(QList<QVector2D> &vertices, double idealDistan
             vertices[i].setX(0);
         }
         if(vertices[i].y() > m_AreaHeight) {
-            vertices[i].setY(m_AreaWidth);
+            vertices[i].setY(m_AreaHeight);
         }
         if(vertices[i].y() < 0) {
             vertices[i].setY(0);

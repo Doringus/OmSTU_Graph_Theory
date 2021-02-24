@@ -5,7 +5,7 @@
 
 #include "graphdrawer.h"
 #include "fruchtermanreingold.h"
-
+#include "graphlayout.h"
 
 int main(int argc, char *argv[])
 {
@@ -23,8 +23,11 @@ int main(int argc, char *argv[])
             QCoreApplication::exit(-1);
     }, Qt::QueuedConnection);
     qmlRegisterType<GraphDrawer>("GraphDrawer", 1, 0, "GraphDrawer");
+    qmlRegisterType<GraphLayout>("GraphDrawer", 1, 0, "GraphLayout");
+    qmlRegisterType<FruchtermanReingold>("GraphDrawer", 1, 0, "FruchtermanReingold");
+
     engine.load(url);
-    FruchtermanReingold fr;
+   /* FruchtermanReingold fr;
     QList<QList<double>> m = {
         {0, 1, 0, 0, 1, 1},
         {1, 0, 1, 0, 1, 0},
@@ -35,6 +38,7 @@ int main(int argc, char *argv[])
     };
     fr.setAdjacencyMatrix(m);
     fr.setArea(400.0, 400.0);
-    fr.start();
+    fr.start();*/
+
     return app.exec();
 }
