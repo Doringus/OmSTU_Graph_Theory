@@ -6,10 +6,10 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-        fruchtermanreingold.cpp \
-        graphdrawer.cpp \
-        graphlayout.cpp \
-        main.cpp
+        src/fruchtermanreingold.cpp \
+        src/graphdrawer.cpp \
+        src/graphlayout.cpp \
+        src/main.cpp
 
 RESOURCES += qml.qrc
 
@@ -25,7 +25,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    drawingalgorithm.h \
-    fruchtermanreingold.h \
-    graphdrawer.h \
-    graphlayout.h
+    src/drawingalgorithm.h \
+    src/fruchtermanreingold.h \
+    src/graphdrawer.h \
+    src/graphlayout.h
