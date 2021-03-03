@@ -141,16 +141,16 @@ void FruchtermanReingold::iterate(QList<QVector2D> &vertices, double idealDistan
 
         /// Check if vertex out of bound
         if(vertices[i].x() > m_AreaWidth) {
-            vertices[i].setX(m_AreaWidth - 30);
+            vertices[i].setX(m_AreaWidth - 60);
         }
         if(vertices[i].x() < 0) {
-            vertices[i].setX(30);
+            vertices[i].setX(60);
         }
         if(vertices[i].y() > m_AreaHeight) {
-            vertices[i].setY(m_AreaHeight - 30);
+            vertices[i].setY(m_AreaHeight - 60);
         }
         if(vertices[i].y() < 0) {
-            vertices[i].setY(30);
+            vertices[i].setY(60);
         }
     }
 }
