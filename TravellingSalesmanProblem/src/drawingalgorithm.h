@@ -32,6 +32,7 @@ public:
 
     void setAdjacencyMatrix(const GraphMatrix& matrix) {
         m_GraphMatrix = matrix;
+        start();
         emit adjacencyMatrixChanged();
     }
 

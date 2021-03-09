@@ -1,13 +1,29 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Qt.labs.qmlmodels 1.0
+import Qt.labs.qmlmodels
+import Qt.labs.platform
 
 import GraphDrawer 1.0
 
 import "../baseComponents"
 
 Item { 
+
+    FileDialog {
+        id: graphMatrixDialog
+        onAccepted: {
+            Backend.openGraphMatrixFile(currentFile)
+        }
+    }
+
+    Connections {
+        target: Backend
+        function onAdjacencyMatrixLoaded(matrix) {
+            fr.adjacencyMatrix = matrix
+            layout.adjacencyMatrix = matrix
+        }
+    }
 
     Rectangle {
         anchors.fill: parent
@@ -50,6 +66,7 @@ Item {
                             RButton {
                                 height: 30
                                 text: "Загрузить"
+                                onClicked: graphMatrixDialog.open()
                             }
                         }
 
@@ -57,29 +74,11 @@ Item {
                             Layout.fillWidth: true
                             Layout.fillHeight: true
                             boundsBehavior: Flickable.StopAtBounds
-                            model: TableModel {
-                                   TableModelColumn { display: "name" }
-                                   TableModelColumn { display: "color" }
-
-                                   rows: [
-                                       {
-                                           "name": "1",
-                                           "color": "1"
-                                       },
-                                       {
-                                           "name": "0",
-                                           "color": "1"
-                                       },
-                                       {
-                                           "name": "1",
-                                           "color": "1"
-                                       }
-                                   ]
-                               }
+                            model: Backend.graphMatrix
 
                             delegate: Rectangle {
-                                implicitWidth: 30
-                                implicitHeight: 30
+                                implicitWidth: 35
+                                implicitHeight: 35
                                 border.width: 1
                                 border.color: "white"
                                 color: "transparent"
@@ -93,10 +92,6 @@ Item {
                            }
                         }
                     }
-
-
-
-
                 }
 
                 Rectangle {
@@ -158,26 +153,16 @@ Item {
                     color: "transparent"
 
                     FruchtermanReingold {
-                            id: fr
-                            width: layout.width - 45
-                            height: layout.height - 45
-                            showSteps: true
-                            adjacencyMatrix: [
-                                [0, 1, 0, 0, 1, 1, 1],
-                                [1, 0, 1, 0, 1, 0, 0],
-                                [0, 1, 0, 1, 0, 0, 0],
-                                [0, 0, 1, 0, 1, 0, 0],
-                                [1, 1, 0, 1, 0, 1, 0],
-                                [1, 0, 0, 0, 1, 0, 0],
-                                [1, 0, 0, 0, 0, 0, 0]
-                            ]
-                            Component.onCompleted: fr.start()
-                        }
-                        GraphLayout {
-                            id: layout
-                            anchors.fill: parent
-                            algorithm: fr
-                        }
+                        id: fr
+                        width: layout.width - 30
+                        height: layout.height - 30
+                        showSteps: true
+                    }
+                    GraphLayout {
+                        id: layout
+                        anchors.fill: parent
+                        algorithm: fr
+                    }
                 }
 
                 /* Path algorithms */

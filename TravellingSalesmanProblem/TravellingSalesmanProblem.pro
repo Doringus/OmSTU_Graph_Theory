@@ -1,4 +1,4 @@
-QT += quick
+QT += quick qml
 
 CONFIG += c++17
 # You can make your code fail to compile if it uses deprecated APIs.
@@ -6,10 +6,13 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+        src/backend.cpp \
+        src/branchandbound.cpp \
         src/fruchtermanreingold.cpp \
         src/graphdrawer.cpp \
         src/graphlayout.cpp \
-        src/main.cpp
+        src/main.cpp \
+        src/tablemodel.cpp
 
 RESOURCES += qml.qrc
 
@@ -25,7 +28,11 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
+    src/backend.h \
+    src/branchandbound.h \
     src/drawingalgorithm.h \
     src/fruchtermanreingold.h \
     src/graphdrawer.h \
-    src/graphlayout.h
+    src/graphlayout.h \
+    src/matrixloader.h \
+    src/tablemodel.h

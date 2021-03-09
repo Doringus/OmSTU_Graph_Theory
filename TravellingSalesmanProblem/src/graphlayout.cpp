@@ -52,3 +52,16 @@ void GraphLayout::setAlgorithm(DrawingAlgorithm *algorithm) {
     });
     emit algorithmChanged();
 }
+
+GraphMatrix GraphLayout::getAdjacencyMatrix() const {
+    return m_GraphMatrix;
+}
+
+void GraphLayout::setAdjacencyMatrix(const GraphMatrix &matrix) {
+    m_GraphMatrix = matrix;
+    emit adjacencyMatrixChanged();
+}
+
+void GraphLayout::setEdgeColor(int from, int to, const QColor &color) {
+
+}

@@ -2,10 +2,12 @@
 #include <QQmlApplicationEngine>
 #include <QQuickWindow>
 #include <QVector2D>
+#include <QQmlContext>
 
 #include "graphdrawer.h"
 #include "fruchtermanreingold.h"
 #include "graphlayout.h"
+#include "backend.h"
 
 int main(int argc, char *argv[])
 {
@@ -25,6 +27,9 @@ int main(int argc, char *argv[])
     qmlRegisterType<GraphDrawer>("GraphDrawer", 1, 0, "GraphDrawer");
     qmlRegisterType<GraphLayout>("GraphDrawer", 1, 0, "GraphLayout");
     qmlRegisterType<FruchtermanReingold>("GraphDrawer", 1, 0, "FruchtermanReingold");
+
+    Backend *backend = new Backend();
+    engine.rootContext()->setContextProperty("Backend", backend);
 
     engine.load(url);
    /* FruchtermanReingold fr;
