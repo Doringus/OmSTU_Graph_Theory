@@ -20,3 +20,16 @@ QAbstractTableModel *Backend::getGraphMatrix() const {
     return m_GraphMatrixModel;
 }
 
+QString Backend::getOptimalPathBB() const {
+    return m_OptimalPathBB;
+}
+
+void Backend::setOptimalPathBB(const QString &path) {
+    m_OptimalPathBB = path;
+    emit optimalPathBBChanged();
+}
+
+void Backend::onBbFinished(node_t *endNode) {
+
+}
+

@@ -14,6 +14,8 @@ struct node_t {
     QList<int> visitedVertices;
     double weight;
 };
+Q_DECLARE_METATYPE(node_t)
+
 
 struct penalty_t {
     QPair<int, int> vertices;
@@ -50,8 +52,10 @@ private:
     double getMinByColumnExcept(GraphMatrix& matrix, int col, int exceptionIndex) const;
     void createLeftNode(node_t *leftNode, const QPair<int, int> &edge);
     void createRightNode(node_t *rightNode, const QPair<int, int> &edge);
-    bool checkLoop(node_t *node, int index);
+    bool checkLoop(const QList<QPair<int,int>>& edges);
+    void removeLoop(node_t *node);
 signals:
+    void bbFinished(node_t *endNode);
 private:
     double m_LowBound, m_TopBound;
     node_t *m_CurrentNode, *m_RootNode;

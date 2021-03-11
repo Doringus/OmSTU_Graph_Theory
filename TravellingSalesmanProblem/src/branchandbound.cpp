@@ -46,19 +46,20 @@ void BranchAndBound::start(GraphMatrix &matrix) {
     m_RootNode->matrix = matrix;
     m_RootNode->weight = m_LowBound;
     printMatrix(matrix);
-    for(int i = 0; i < 5; ++i) {
+    while (m_CurrentNode->visitedVertices.count() != matrix.count()) {
         iterate();
     }
+    qDebug() << "FOUND";
+    emit bbFinished(m_CurrentNode);
 }
 
 void BranchAndBound::iterate() {
+    if(m_CurrentNode->visitedVertices.count() != m_CurrentNode->matrix.count() - 1) {
+        removeLoop(m_CurrentNode);
+    }
     auto penalties = getPathWithMaxPenalty(m_CurrentNode->matrix);
     if(penalties.count() > 1) {
-        for(int i = 0; i < penalties.count(); ++i) {
-            if(!checkLoop(m_CurrentNode, penalties.at(i).vertices.second)) {
-                penalties.removeAt(i);
-            }
-        }
+
     }
     node_t *leftNode = createNode(m_CurrentNode);
     node_t *rightNode = createNode(m_CurrentNode);
@@ -214,4 +215,30 @@ void BranchAndBound::createRightNode(node_t *rightNode, const QPair<int, int> &e
 
 bool BranchAndBound::checkLoop(node_t *node, int index) {
     return node->visitedVertices.contains(index);
+}
+
+bool BranchAndBound::checkLoop(const QList<QPair<int, int> > &edges) {
+    QSet<int> vertices;
+    for(const auto& edge : edges) {
+        vertices.insert(edge.first);
+        vertices.insert(edge.second);
+    }
+    for(const auto& edge : edges) {
+        vertices.remove(edge.second);
+    }
+    return vertices.empty();
+}
+
+void BranchAndBound::removeLoop(node_t *node) {
+    for(int i = 0; i < node->matrix.count(); ++i) {
+        for(int j = 0; j < node->matrix.count(); ++j) {
+            if(node->matrix.at(i).at(j) != MAX_VALUE) {
+                QList<QPair<int, int>> edges = node->includedEdges;
+                edges.append({i, j});
+                if(checkLoop(edges)) {
+                    node->matrix[i][j] = MAX_VALUE;
+                }
+            }
+        }
+    }
 }
