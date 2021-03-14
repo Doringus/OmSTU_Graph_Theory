@@ -1,10 +1,11 @@
 import QtQuick
-import QtQuick.Controls
+import QtQuick.Controls.Material
 import QtQuick.Layouts
 import Qt.labs.qmlmodels
 import Qt.labs.platform
 
 import GraphDrawer 1.0
+import BranchAndBound 1.0
 
 import "../baseComponents"
 
@@ -23,6 +24,34 @@ Item {
             fr.adjacencyMatrix = matrix
             layout.adjacencyMatrix = matrix
         }
+        function onGraphPathChanged(path) {
+            layout.drawPath(path)
+        }
+        function onTreeNodeReceived(node) {
+            treeDrawer.root = node
+        }
+    }
+
+    Popup {
+        id: treePopup
+
+        anchors.centerIn: parent
+        width: parent.width - 300
+        height: parent.height - 300
+        ScrollView {
+            anchors.fill: parent
+            contentWidth:  treeDrawer.width
+            contentHeight: treeDrawer.height
+            ScrollBar.horizontal.policy: ScrollBar.AlwaysOn
+            ScrollBar.vertical.policy: ScrollBar.AlwaysOn
+            TreeDrawer {
+                id: treeDrawer
+
+
+            }
+        }
+
+
     }
 
     Rectangle {
@@ -162,6 +191,7 @@ Item {
                         id: layout
                         anchors.fill: parent
                         algorithm: fr
+                        drawEdges: false
                     }
                 }
 
@@ -192,6 +222,7 @@ Item {
                             height: 30
                             width: 120
                             text: "Подробнее"
+                            onClicked: treePopup.open()
                         }
                     }
                 }
@@ -200,6 +231,17 @@ Item {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     color: "transparent"
+                    TextArea {
+                        anchors.fill: parent
+                        color: "white"
+                        font.pointSize: 14
+                        text: Backend.optimalPathBB
+                        readOnly: true
+                        background: Rectangle {
+                            anchors.fill: parent
+                            color: "transparent"
+                        }
+                    }
                 }
 
                 Rectangle {

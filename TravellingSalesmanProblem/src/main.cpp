@@ -8,6 +8,7 @@
 #include "fruchtermanreingold.h"
 #include "graphlayout.h"
 #include "backend.h"
+#include "treedrawer.h"
 
 int main(int argc, char *argv[])
 {
@@ -27,23 +28,12 @@ int main(int argc, char *argv[])
     qmlRegisterType<GraphDrawer>("GraphDrawer", 1, 0, "GraphDrawer");
     qmlRegisterType<GraphLayout>("GraphDrawer", 1, 0, "GraphLayout");
     qmlRegisterType<FruchtermanReingold>("GraphDrawer", 1, 0, "FruchtermanReingold");
+    qmlRegisterType<TreeDrawer>("BranchAndBound", 1, 0, "TreeDrawer");
 
     Backend *backend = new Backend();
     engine.rootContext()->setContextProperty("Backend", backend);
 
     engine.load(url);
-   /* FruchtermanReingold fr;
-    QList<QList<double>> m = {
-        {0, 1, 0, 0, 1, 1},
-        {1, 0, 1, 0, 1, 0},
-        {0, 1, 0, 1, 0, 0},
-        {0, 0, 1, 0, 1, 0},
-        {1, 1, 0, 1, 0, 1},
-        {1, 0, 0, 0, 1, 0}
-    };
-    fr.setAdjacencyMatrix(m);
-    fr.setArea(400.0, 400.0);
-    fr.start();*/
 
     return app.exec();
 }

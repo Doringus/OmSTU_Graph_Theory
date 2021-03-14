@@ -17,14 +17,12 @@ void GraphLayout::paint(QPainter *painter) {
         painter->setPen(QPen(Qt::GlobalColor::lightGray, 2, Qt::SolidLine, Qt::RoundCap));
         for(auto edge : m_Edges) {
             drawEdge(edge, painter);
-         //   painter->drawLine(edge.x1 + 15, edge.y1 + 15, edge.x2 + 15, edge.y2 + 15);
         }
     }
 
     for(auto edge : m_Path) {
         painter->setPen(QPen(edge.color, 2, Qt::SolidLine, Qt::RoundCap));
         drawEdge(edge, painter);
-      //  painter->drawLine(edge.x1 + 15, edge.y1 + 15, edge.x2 + 15, edge.y2 + 15);
     }
 
 

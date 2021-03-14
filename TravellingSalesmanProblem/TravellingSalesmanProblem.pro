@@ -12,7 +12,8 @@ SOURCES += \
         src/graphdrawer.cpp \
         src/graphlayout.cpp \
         src/main.cpp \
-        src/tablemodel.cpp
+        src/tablemodel.cpp \
+        src/treedrawer.cpp
 
 RESOURCES += qml.qrc
 
@@ -35,4 +36,5 @@ HEADERS += \
     src/graphdrawer.h \
     src/graphlayout.h \
     src/matrixloader.h \
-    src/tablemodel.h
+    src/tablemodel.h \
+    src/treedrawer.h
