@@ -4,9 +4,11 @@
 
 const int rectWidth = 100;
 const int rectHeight = 80;
+const int verticalSpacing = 30;
+const int horizontalSpacing = 20;
 
 QString getPairText(const QPair<int, int> pair) {
-    return "(" + QString::number(pair.first) + ", " + QString::number(pair.second) + ")";
+    return "(" + QString::number(pair.first + 1) + ", " + QString::number(pair.second + 1) + ")";
 }
 
 TreeDrawer::TreeDrawer(QQuickPaintedItem *parent) : QQuickPaintedItem(parent) ,
@@ -29,50 +31,44 @@ void TreeDrawer::paint(QPainter *painter) {
     int level = 1;
     int rectY = 50;
     // Draw root node
-    painter->setPen(QPen(Qt::GlobalColor::lightGray, 2, Qt::SolidLine, Qt::RoundCap));
-    painter->drawRect(m_RootX, rectY, rectWidth, rectHeight);
+    drawNode(painter, m_RootX, rectY, "", QString::number(m_Root->weight), m_Root->isInPath);
 
-    int leftRectX = m_RootX - rectWidth / 2  - 20;
-    int rightRectX = m_RootX + rectWidth / 2 + 20;
+    int leftRectX = m_RootX - rectWidth / 2  - horizontalSpacing;
+    int rightRectX = m_RootX + rectWidth / 2 + horizontalSpacing;
     int parentX = m_RootX;
 
     node_t *root = m_Root;
 
-    int maxWidth = rightRectX;
     while(root) {
         if(!root->left && !root->right) {
             break;
         }
-        rectY += rectHeight + 30;
+        rectY += rectHeight + verticalSpacing;
 
         //draw childrens
-        painter->drawRect(leftRectX, rectY, rectWidth, rectHeight);
-        painter->drawRect(rightRectX, rectY, rectWidth, rectHeight);
+        drawNode(painter, leftRectX, rectY, getPairText(root->left->includedEdges.last()),
+                 QString::number(root->left->weight), root->left->isInPath);
+        drawNode(painter, rightRectX, rectY, "!" + getPairText(root->right->excludedEdges.last()),
+                 QString::number(root->right->weight), root->right->isInPath);
 
         //draw edges
-        painter->drawLine(QPointF(leftRectX + rectWidth / 2, rectY), QPointF(parentX + rectWidth / 2, rectY - 30));
-        painter->drawLine(QPointF(rightRectX + rectWidth / 2, rectY), QPointF(parentX + rectWidth / 2, rectY - 30));
-
-        // draw node text
-        painter->setPen(Qt::black);
-        painter->drawText(QRect(leftRectX, rectY, rectWidth, rectHeight), Qt::AlignCenter, getPairText(root->left->includedEdges.last()));
-        painter->drawText(QRect(rightRectX, rectY, rectWidth, rectHeight), Qt::AlignCenter, "!" + getPairText(root->right->excludedEdges.last()));
+        painter->drawLine(QPointF(leftRectX + rectWidth / 2, rectY), QPointF(parentX + rectWidth / 2, rectY - verticalSpacing));
+        painter->drawLine(QPointF(rightRectX + rectWidth / 2, rectY), QPointF(parentX + rectWidth / 2, rectY - verticalSpacing));
 
         if(root->left->left) {
             parentX = leftRectX;
-            leftRectX = leftRectX - (rectWidth / 2 + 20);
-            rightRectX = leftRectX + rectWidth + 20;
+            leftRectX = leftRectX - (rectWidth / 2 + horizontalSpacing);
+            rightRectX = leftRectX + rectWidth + horizontalSpacing;
             root = root->left;
 
         } else {
             parentX = rightRectX;
-            leftRectX = rightRectX - rectWidth / 2 - 20;
-            rightRectX += rectWidth / 2 + 20;
+            leftRectX = rightRectX - rectWidth / 2 - horizontalSpacing;
+            rightRectX += rectWidth / 2 + horizontalSpacing;
             root = root->right;
         }
         level++;
     }
-    qDebug() << maxWidth;
 }
 
 node_t *TreeDrawer::getRoot() const {
@@ -84,13 +80,13 @@ void TreeDrawer::setRoot(node_t *root) {
 
     // find level with min X at left node
     int rectX = 0;
-    int leftRectX = rectX - rectWidth / 2  - 20;
-    int rightRectX = rectX + rectWidth / 2 + 20;
+    int leftRectX = rectX - rectWidth / 2  - horizontalSpacing;
+    int rightRectX = rectX + rectWidth / 2 + horizontalSpacing;
     int rectY = 50;
 
     int maxWidth = rightRectX;
     while(root) {
-        rectY += rectHeight + 30;
+        rectY += rectHeight + verticalSpacing;
         if(leftRectX <= 0) {
             int offset = 20 - leftRectX;
             rightRectX += offset;
@@ -108,17 +104,17 @@ void TreeDrawer::setRoot(node_t *root) {
         }
         if(root->left->left) {
             root = root->left;
-            leftRectX = leftRectX - (rectWidth / 2 + 20);
-            rightRectX = leftRectX + rectWidth + 20;
+            leftRectX = leftRectX - (rectWidth / 2 + horizontalSpacing);
+            rightRectX = leftRectX + rectWidth + horizontalSpacing;
         } else {
-            leftRectX = rightRectX - rectWidth / 2 - 20;
-            rightRectX += rectWidth / 2 + 20;
+            leftRectX = rightRectX - rectWidth / 2 - horizontalSpacing;
+            rightRectX += rectWidth / 2 + horizontalSpacing;
             root = root->right;
         }
     }
     m_RootX = rectX;
-    setHeight(rectY + rectHeight + 20);
-    setWidth(maxWidth + rectWidth + 20);
+    setHeight(rectY + rectHeight + horizontalSpacing);
+    setWidth(maxWidth + rectWidth + horizontalSpacing);
     emit rootChanged();
     update();
 }
@@ -139,4 +135,17 @@ int TreeDrawer::getContentHeight() const {
 void TreeDrawer::setContentHeight(int height) {
     m_ContentHeight = height;
     emit contentHeightChanged();
+}
+
+void TreeDrawer::drawNode(QPainter *painter, int x, int y, const QString &edge, const QString &weight, bool isInPath) {
+    if(isInPath) {
+        painter->setPen(QPen(Qt::GlobalColor::green, 2, Qt::SolidLine, Qt::RoundCap));
+    }
+    painter->drawRect(x, y, rectWidth, rectHeight);
+    painter->drawLine(x, y + rectHeight / 2, x + rectWidth, y + rectHeight / 2);
+
+    painter->setPen(Qt::black);
+    painter->drawText(QRect(x, y, rectWidth, rectHeight / 2), Qt::AlignCenter, edge);
+    painter->drawText(QRect(x, y + rectWidth / 2, rectWidth, rectHeight / 2), Qt::AlignCenter, weight);
+    painter->setPen(QPen(Qt::GlobalColor::lightGray, 2, Qt::SolidLine, Qt::RoundCap));
 }

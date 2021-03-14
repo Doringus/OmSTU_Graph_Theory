@@ -40,6 +40,7 @@ void BranchAndBound::start(GraphMatrix &matrix) {
     m_LowBound = reduceMatrix(matrix);
     m_RootNode->matrix = matrix;
     m_RootNode->weight = m_LowBound;
+    m_RootNode->isInPath = true;
     printMatrix(matrix);
     while (m_CurrentNode->visitedVertices.count() < matrix.count()) {
         iterate();
@@ -85,6 +86,7 @@ void BranchAndBound::iterate() {
     qDebug() << "LEFT" << leftNode->weight << "RIGHT" << rightNode->weight;
     qDebug() << m_CurrentNode->weight << m_CurrentNode->includedEdges;
     printMatrix(m_CurrentNode->matrix);
+    m_CurrentNode->isInPath = true;
 }
 
 double BranchAndBound::findSimpleWay(const GraphMatrix &matrix) const {

@@ -13,6 +13,7 @@ struct node_t {
     QList<QPair<int, int>> excludedEdges;
     QList<int> visitedVertices;
     double weight;
+    bool isInPath = false;
 };
 Q_DECLARE_METATYPE(node_t)
 

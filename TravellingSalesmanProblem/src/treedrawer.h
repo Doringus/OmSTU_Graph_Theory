@@ -24,6 +24,8 @@ public:
 
     int getContentHeight() const;
     void setContentHeight(int height);
+private:
+    void drawNode(QPainter *painter, int x, int y, const QString& edge, const QString& weight, bool isInPath);
 signals:
     void rootChanged();
     void contentWidthChanged();
