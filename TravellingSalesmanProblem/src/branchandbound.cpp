@@ -27,12 +27,16 @@ static node_t* createNode(node_t *parent) {
     return node;
 }
 
-BranchAndBound::BranchAndBound(QObject *parent) : QObject(parent) {
-    m_RootNode = new node_t;
-    m_CurrentNode = m_RootNode;
+BranchAndBound::BranchAndBound(QObject *parent) : QObject(parent),
+                                                m_RootNode(nullptr), m_CurrentNode(nullptr){
+
 }
 
 void BranchAndBound::start(GraphMatrix &matrix) {
+    deleteTree(m_CurrentNode);
+    m_RootNode = new node_t;
+    m_CurrentNode = m_RootNode;
+
     for(int i = 0; i < matrix.count(); ++i) {
         matrix[i][i] = MAX_VALUE;
     }
@@ -244,6 +248,22 @@ void BranchAndBound::removeLoop(node_t *node) {
                     node->matrix[i][j] = MAX_VALUE;
                 }
             }
+        }
+    }
+}
+
+void BranchAndBound::deleteTree(node_t *endNode) {
+    while(endNode) {
+        if(!endNode->parent) {
+            delete endNode;
+            break;
+        }
+        endNode = endNode->parent;
+        if(endNode->left) {
+            delete endNode->left;
+        }
+        if(endNode->right) {
+            delete endNode->right;
         }
     }
 }

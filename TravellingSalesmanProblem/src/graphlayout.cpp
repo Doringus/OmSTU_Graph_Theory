@@ -64,10 +64,12 @@ GraphMatrix GraphLayout::getAdjacencyMatrix() const {
 
 void GraphLayout::setAdjacencyMatrix(const GraphMatrix &matrix) {
     m_GraphMatrix = matrix;
+    m_Algorithm->setAdjacencyMatrix(matrix);
     emit adjacencyMatrixChanged();
 }
 
 void GraphLayout::drawPath(const QList<QPair<int, int>>& path) {
+    m_Path.clear();
     for(const auto& v : path) {
         edge_t edge;
         edge.color = Qt::GlobalColor::green;
@@ -89,6 +91,7 @@ void GraphLayout::setDrawEdges(bool draw) {
 }
 
 void GraphLayout::createEdges() {
+    m_Edges.clear();
     m_Vertices = m_Algorithm->getVertices();
     for(int i = 0; i < m_GraphMatrix.count(); ++i) {
         for(int j = i; j < m_GraphMatrix.count(); ++j) {

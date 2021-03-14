@@ -5,7 +5,7 @@
 #include "drawingalgorithm.h"
 
 struct node_t {
-    node_t *parent;
+    node_t *parent = nullptr;
     node_t *left = nullptr, *right = nullptr;
     GraphMatrix matrix;
     QPair<int, int> edge;
@@ -55,6 +55,7 @@ private:
     void createRightNode(node_t *rightNode, const QPair<int, int> &edge);
     bool checkLoop(const QList<QPair<int,int>>& edges);
     void removeLoop(node_t *node);
+    void deleteTree(node_t *endNode);
 signals:
     void bbFinished(node_t *endNode, node_t *rootNode);
 private:

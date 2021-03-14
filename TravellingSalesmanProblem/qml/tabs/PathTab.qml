@@ -21,7 +21,6 @@ Item {
     Connections {
         target: Backend
         function onAdjacencyMatrixLoaded(matrix) {
-            fr.adjacencyMatrix = matrix
             layout.adjacencyMatrix = matrix
         }
         function onGraphPathChanged(path) {
@@ -185,7 +184,7 @@ Item {
                         id: fr
                         width: layout.width - 30
                         height: layout.height - 30
-                        showSteps: true
+                        showSteps: false
                     }
                     GraphLayout {
                         id: layout
