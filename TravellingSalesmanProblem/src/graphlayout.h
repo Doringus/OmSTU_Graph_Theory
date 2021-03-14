@@ -10,6 +10,7 @@ class GraphLayout : public QQuickPaintedItem {
 
     Q_PROPERTY(DrawingAlgorithm *algorithm READ getAlgorithm WRITE setAlgorithm NOTIFY algorithmChanged)
     Q_PROPERTY(GraphMatrix adjacencyMatrix READ getAdjacencyMatrix WRITE setAdjacencyMatrix NOTIFY adjacencyMatrixChanged)
+    Q_PROPERTY(bool drawEdges READ getDrawEdges WRITE setDrawEdges NOTIFY drawEdgesChanged)
 public:
     GraphLayout(QQuickPaintedItem *parent = nullptr);
     void paint(QPainter *painter) override;
@@ -20,12 +21,22 @@ public:
     GraphMatrix getAdjacencyMatrix() const;
     void setAdjacencyMatrix(const GraphMatrix& matrix);
 
-    Q_INVOKABLE void setEdgeColor(int from, int to, const QColor& color);
+    Q_INVOKABLE void drawPath(const QList<QPair<int, int>>& path);
+
+    bool getDrawEdges() const;
+    void setDrawEdges(bool draw);
+private:
+    void createEdges();
+    void drawEdge(edge_t& edge, QPainter *painter);
 signals:
     void algorithmChanged();
     void adjacencyMatrixChanged();
+    void drawEdgesChanged();
 private:
     DrawingAlgorithm *m_Algorithm;
     GraphMatrix m_GraphMatrix;
+    bool m_DrawEdges;
+    QList<QPointF> m_Vertices;
+    QList<edge_t> m_Edges, m_Path;
 };
 
