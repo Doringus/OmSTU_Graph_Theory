@@ -54,20 +54,6 @@ void FruchtermanReingold::start() {
         m_Vertices.push_back(vec.toPointF());
     }
     /// Create edges
-    m_Edges.clear();
-    for(int i = 0; i < m_GraphMatrix.count(); ++i) {
-        for(int j = i; j < m_GraphMatrix.count(); ++j) {
-            if(!m_GraphMatrix.at(i).at(j) || i == j) {
-                continue;
-            }
-            edge_t edge;
-            edge.x1 = m_Vertices.at(i).x();
-            edge.y1 = m_Vertices.at(i).y();
-            edge.x2 = m_Vertices.at(j).x();
-            edge.y2 = m_Vertices.at(j).y();
-            m_Edges.push_back(edge);
-        }
-    }
     emit layoutChanged();
 }
 

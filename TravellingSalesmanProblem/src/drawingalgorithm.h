@@ -3,12 +3,14 @@
 #include <QObject>
 #include <QList>
 #include <QPointF>
+#include <QColor>
+#include <QLineF>
 
 using GraphMatrix = QList<QList<double>>;
 
 struct edge_t {
-    double x1, y1;
-    double x2, y2;
+    QLineF line;
+    QColor color = Qt::GlobalColor::lightGray;
 };
 
 /*!
@@ -53,13 +55,6 @@ public:
         return m_Vertices;
     }
 
-    /*!
-     * \brief Function returns edges
-     * \return list of edges
-     */
-    QList<edge_t> getEdges() const {
-        return m_Edges;
-    }
 
 signals:
     void showStepsChanged();
@@ -75,5 +70,4 @@ protected:
     bool m_ShowSteps;
     GraphMatrix m_GraphMatrix;
     QList<QPointF> m_Vertices;
-    QList<edge_t> m_Edges;
 };
