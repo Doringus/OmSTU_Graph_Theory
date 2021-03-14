@@ -3,5 +3,7 @@
         <file>qml/main.qml</file>
         <file>qml/tabs/PathTab.qml</file>
         <file>qml/baseComponents/RButton.qml</file>
+        <file>qml/tabs/BBProfiler.qml</file>
+        <file>qml/baseComponents/RTabButton.qml</file>
     </qresource>
 </RCC>

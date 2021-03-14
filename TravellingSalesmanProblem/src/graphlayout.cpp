@@ -1,6 +1,7 @@
 #include "graphlayout.h"
 
 #include <QPainter>
+#include <QPainterPath>
 
 GraphLayout::GraphLayout(QQuickPaintedItem *parent) : QQuickPaintedItem(parent),
                                                       m_Algorithm(nullptr) {
@@ -108,6 +109,7 @@ void GraphLayout::createEdges() {
 }
 
 void GraphLayout::drawEdge(edge_t &edge, QPainter *painter) {
+    QPainterPath path;
     painter->drawLine(edge.line);
     edge.line.setLength(edge.line.length() - 15);
     double angle = std::atan2(-edge.line.dy(), edge.line.dx());
@@ -115,6 +117,8 @@ void GraphLayout::drawEdge(edge_t &edge, QPainter *painter) {
                                         cos(angle + M_PI / 6) * 15);
     QPointF arrowP2 = edge.line.p2() - QPointF(sin(angle + M_PI - M_PI / 6) * 15,
                                         cos(angle + M_PI - M_PI / 6) * 15);
-    painter->drawPolygon({arrowP1 , arrowP2, edge.line.p2()});
+    path.addPolygon({arrowP1 , arrowP2, edge.line.p2()});
+    painter->fillPath(path, Qt::green);
+    painter->drawPath(path);
 }
 

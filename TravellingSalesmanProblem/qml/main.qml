@@ -6,6 +6,7 @@ import QtQuick.Layouts
 import GraphDrawer 1.0
 
 import "tabs"
+import "baseComponents"
 
 ApplicationWindow {
     width: 1200
@@ -16,37 +17,44 @@ ApplicationWindow {
     header: Rectangle {
         height: 40
         color: "#1C1E23"
+        TabBar {
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: 800
+            background: Rectangle {
+                color: "transparent"
+            }
+            RTabButton {
+                text: "Путь"
+                height: parent.height
+                onClicked: {
+                    stack.currentIndex = 0;
+                }
+            }
+            RTabButton {
+                text: "BB"
+                height: parent.height
+                onClicked: {
+                    stack.currentIndex = 1;
+                }
+            }
+            RTabButton {
+                text: "Генетический алгоритм"
+                height: parent.height
+            }
+        }
     }
 
     StackLayout {
+        id: stack
         anchors.fill: parent
-        currentIndex: 0
+        currentIndex: 1
 
         PathTab {
 
         }
-    }
 
-    /*FruchtermanReingold {
-        id: fr
-        width: layout.width - 30
-        height: layout.height - 30
-        showSteps: true
-        adjacencyMatrix: [
-            [0, 1, 0, 0, 1, 1, 1],
-            [1, 0, 1, 0, 1, 0, 0],
-            [0, 1, 0, 1, 0, 0, 0],
-            [0, 0, 1, 0, 1, 0, 0],
-            [1, 1, 0, 1, 0, 1, 0],
-            [1, 0, 0, 0, 1, 0, 0],
-            [1, 0, 0, 0, 0, 0, 0]
-        ]
-        Component.onCompleted: fr.start()
-    }
-    GraphLayout {
-        id: layout
-        anchors.fill: parent
-        algorithm: fr
-    }*/
+        BBProfiler {
 
+        }
+    }
 }

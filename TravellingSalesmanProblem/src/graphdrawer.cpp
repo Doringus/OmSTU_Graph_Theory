@@ -7,7 +7,7 @@
 #include <QPainter>
 #include <QSGImageNode>
 
-GraphDrawer::GraphDrawer(QQuickItem *parent) : QQuickItem(parent){
+GraphDrawer::GraphDrawer(QQuickItem *parent) : QQuickItem(parent), m_DrawEdges(true){
     setFlag(QQuickItem::ItemHasContents);
     connect(this, &QQuickItem::heightChanged, [=](){
     });
@@ -20,6 +20,15 @@ GraphDrawer::Algorithm GraphDrawer::getAlgorithm() const {
 void GraphDrawer::setAlgorithm(GraphDrawer::Algorithm algorithm) {
     m_Algorithm = algorithm;
     emit algorithmChanged();
+}
+
+bool GraphDrawer::getDrawEdges() const {
+    return m_DrawEdges;
+}
+
+void GraphDrawer::setDrawEdges(bool draw) {
+    m_DrawEdges = draw;
+    emit drawEdgesChanged();
 }
 
 QSGNode *GraphDrawer::updatePaintNode(QSGNode *oldNode, QQuickItem::UpdatePaintNodeData *updatePaintNodeData) {
