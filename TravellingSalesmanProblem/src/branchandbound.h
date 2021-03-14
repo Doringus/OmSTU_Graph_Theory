@@ -6,7 +6,7 @@
 
 struct node_t {
     node_t *parent;
-    node_t *left, *right;
+    node_t *left = nullptr, *right = nullptr;
     GraphMatrix matrix;
     QPair<int, int> edge;
     QList<QPair<int, int>> includedEdges;
@@ -55,7 +55,7 @@ private:
     bool checkLoop(const QList<QPair<int,int>>& edges);
     void removeLoop(node_t *node);
 signals:
-    void bbFinished(node_t *endNode);
+    void bbFinished(node_t *endNode, node_t *rootNode);
 private:
     double m_LowBound, m_TopBound;
     node_t *m_CurrentNode, *m_RootNode;

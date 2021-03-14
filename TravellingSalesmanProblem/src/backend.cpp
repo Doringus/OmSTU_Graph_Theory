@@ -3,8 +3,22 @@
 #include "matrixloader.h"
 #include "branchandbound.h"
 
-Backend::Backend(QObject *parent) : QObject(parent), m_GraphMatrixModel(new TableModel) {
+void sortEdges(QVector<QPair<int, int>> &edges) {
+    QPair<int, int> currentEdge = edges.first();
+    for(int i = 1; i < edges.count() - 1; ++i) {
+        for(int j = i + 1; j < edges.count(); ++j) {
+            if(edges[j].first == currentEdge.second) {
+                currentEdge = edges[j];
+                edges.swapItemsAt(i, j);
+                break;
+            }
+        }
+    }
+}
 
+Backend::Backend(QObject *parent) : QObject(parent), m_GraphMatrixModel(new TableModel(this)),
+                                                    m_BranchAndBound(new BranchAndBound(this)){
+    connect(m_BranchAndBound, &BranchAndBound::bbFinished, this, &Backend::onBbFinished);
 }
 
 void Backend::openGraphMatrixFile(const QUrl& url) {
@@ -13,7 +27,7 @@ void Backend::openGraphMatrixFile(const QUrl& url) {
     m_GraphMatrixModel->setMatrix(r);
     emit adjacencyMatrixLoaded(r);
     BranchAndBound bb;
-    bb.start(r);
+    m_BranchAndBound->start(r);
 }
 
 QAbstractTableModel *Backend::getGraphMatrix() const {
@@ -29,7 +43,24 @@ void Backend::setOptimalPathBB(const QString &path) {
     emit optimalPathBBChanged();
 }
 
-void Backend::onBbFinished(node_t *endNode) {
-
+void Backend::onBbFinished(node_t *endNode, node_t *rootNode) {
+    QString path("Оптимальный путь:\n");
+    QVector<QPair<int, int>> edges = endNode->includedEdges;
+    sortEdges(edges);
+    if(edges.count() == 0) {
+        path += "0";
+        for(int i = 1; i < endNode->matrix.count(); ++i) {
+            path+= "->" + QString::number(i);
+        }
+    } else {
+        path += QString::number(edges.first().first + 1);
+        for(const auto& edge : edges) {
+            path+= "->" + QString::number(edge.second + 1);
+        }
+    }
+    path += "\nДлина: " + QString::number(endNode->weight);
+    setOptimalPathBB(path);
+    emit graphPathChanged(endNode->includedEdges);
+    emit treeNodeReceived(rootNode);
 }
 

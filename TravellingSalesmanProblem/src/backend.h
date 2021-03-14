@@ -7,6 +7,7 @@
 #include "drawingalgorithm.h"
 
 struct node_t;
+class BranchAndBound;
 
 class Backend : public QObject {
     Q_OBJECT
@@ -30,13 +31,16 @@ public:
     QString getOptimalPathBB() const;
     void setOptimalPathBB(const QString& path);
 private slots:
-    void onBbFinished(node_t *endNode);
+    void onBbFinished(node_t *endNode, node_t *rootNode);
 signals:
     void graphMatrixChanged();
     void adjacencyMatrixLoaded(const GraphMatrix& matrix);
     void optimalPathBBChanged();
+    void graphPathChanged(const QList<QPair<int, int>>& path);
+    void treeNodeReceived(node_t *node);
 private:
     TableModel *m_GraphMatrixModel;
+    BranchAndBound *m_BranchAndBound;
     QString m_OptimalPathBB;
 };
 

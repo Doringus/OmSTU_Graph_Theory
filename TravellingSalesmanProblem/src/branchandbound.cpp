@@ -38,19 +38,15 @@ void BranchAndBound::start(GraphMatrix &matrix) {
     }
     m_TopBound = findSimpleWay(matrix);
     m_LowBound = reduceMatrix(matrix);
-    qDebug() << m_TopBound << m_LowBound;
-    auto penalties = getPathWithMaxPenalty(matrix);
-    if(penalties.count() > 1) {
-        /* Create thread here for another branches */
-    }
     m_RootNode->matrix = matrix;
     m_RootNode->weight = m_LowBound;
     printMatrix(matrix);
-    while (m_CurrentNode->visitedVertices.count() != matrix.count()) {
+    while (m_CurrentNode->visitedVertices.count() < matrix.count()) {
         iterate();
     }
     qDebug() << "FOUND";
-    emit bbFinished(m_CurrentNode);
+    qDebug() << m_CurrentNode->includedEdges;
+    emit bbFinished(m_CurrentNode, m_RootNode);
 }
 
 void BranchAndBound::iterate() {
@@ -63,16 +59,26 @@ void BranchAndBound::iterate() {
     }
     node_t *leftNode = createNode(m_CurrentNode);
     node_t *rightNode = createNode(m_CurrentNode);
+
+    m_CurrentNode->left = leftNode;
+    m_CurrentNode->right = rightNode;
+
     createLeftNode(leftNode, penalties.first().vertices);
     createRightNode(rightNode, penalties.first().vertices);
     if(rightNode->weight < rightNode->weight) {
         if(rightNode->weight > m_TopBound) {
             /* End */
+            m_CurrentNode->visitedVertices.fill(m_RootNode->matrix.count());
+            m_CurrentNode = m_RootNode;
+            return;
         }
         m_CurrentNode = rightNode;
     } else {
         if(leftNode->weight > m_TopBound) {
             /* End */
+            m_CurrentNode->visitedVertices.fill(m_RootNode->matrix.count());
+            m_CurrentNode = m_RootNode;
+            return;
         }
         m_CurrentNode = leftNode;
     }
@@ -213,11 +219,8 @@ void BranchAndBound::createRightNode(node_t *rightNode, const QPair<int, int> &e
     rightNode->excludedEdges.append(edge);
 }
 
-bool BranchAndBound::checkLoop(node_t *node, int index) {
-    return node->visitedVertices.contains(index);
-}
-
-bool BranchAndBound::checkLoop(const QList<QPair<int, int> > &edges) {
+/*!  WARNING! VERY STUPID CODE HERE!!!*/
+bool BranchAndBound::checkLoop(const QList<QPair<int, int>> &edges) {
     QSet<int> vertices;
     for(const auto& edge : edges) {
         vertices.insert(edge.first);
