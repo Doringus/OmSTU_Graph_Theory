@@ -1,4 +1,4 @@
-QT += quick qml
+QT += quick qml concurrent gui
 
 CONFIG += c++17
 # You can make your code fail to compile if it uses deprecated APIs.
@@ -12,6 +12,7 @@ SOURCES += \
         src/graphdrawer.cpp \
         src/graphlayout.cpp \
         src/main.cpp \
+        src/pdfwriter.cpp \
         src/tablemodel.cpp \
         src/treedrawer.cpp
 
@@ -36,5 +37,6 @@ HEADERS += \
     src/graphdrawer.h \
     src/graphlayout.h \
     src/matrixloader.h \
+    src/pdfwriter.h \
     src/tablemodel.h \
     src/treedrawer.h

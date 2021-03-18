@@ -6,6 +6,7 @@ import Qt.labs.platform
 
 import GraphDrawer 1.0
 import BranchAndBound 1.0
+import Utils 1.0
 
 import "../baseComponents"
 
@@ -13,9 +14,26 @@ Item {
 
     FileDialog {
         id: graphMatrixDialog
+
         onAccepted: {
             Backend.openGraphMatrixFile(currentFile)
         }
+    }
+
+    FileDialog {
+        id: savePdfDialog
+
+        fileMode: FileDialog.SaveFile
+        nameFilters: ["Pdf files (*.pdf)"]
+        onAccepted: {
+            layout.grabToImage(function(result) {
+                writer.saveToFile(savePdfDialog.currentFile, result.image, Backend.optimalPathBB)
+            })
+        }
+    }
+
+    PdfWriter {
+        id: writer
     }
 
     Connections {
@@ -25,6 +43,9 @@ Item {
         }
         function onGraphPathChanged(path) {
             layout.drawPath(path)
+            layout.grabToImage(function(result){
+                result.saveToFile("test.png")
+            })
         }
         function onTreeNodeReceived(node) {
             treeDrawer.root = node
@@ -222,6 +243,13 @@ Item {
                             width: 120
                             text: "Подробнее"
                             onClicked: treePopup.open()
+                        }
+                        RButton {
+                            anchors.verticalCenter: parent.verticalCenter
+                            height: 30
+                            width: 120
+                            text: "Сохранить"
+                            onClicked: savePdfDialog.open()
                         }
                     }
                 }

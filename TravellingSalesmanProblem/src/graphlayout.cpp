@@ -13,6 +13,8 @@ void GraphLayout::paint(QPainter *painter) {
         return;
     }
     painter->setRenderHints(QPainter::Antialiasing, true);
+    painter->setRenderHint(QPainter::SmoothPixmapTransform);
+    painter->setRenderHint(QPainter::TextAntialiasing);
 
     if(m_DrawEdges) {
         painter->setPen(QPen(Qt::GlobalColor::lightGray, 2, Qt::SolidLine, Qt::RoundCap));

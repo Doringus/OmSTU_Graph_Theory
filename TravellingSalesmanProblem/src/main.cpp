@@ -9,6 +9,7 @@
 #include "graphlayout.h"
 #include "backend.h"
 #include "treedrawer.h"
+#include "pdfwriter.h"
 
 int main(int argc, char *argv[])
 {
@@ -25,10 +26,12 @@ int main(int argc, char *argv[])
         if (!obj && url == objUrl)
             QCoreApplication::exit(-1);
     }, Qt::QueuedConnection);
+
     qmlRegisterType<GraphDrawer>("GraphDrawer", 1, 0, "GraphDrawer");
     qmlRegisterType<GraphLayout>("GraphDrawer", 1, 0, "GraphLayout");
     qmlRegisterType<FruchtermanReingold>("GraphDrawer", 1, 0, "FruchtermanReingold");
     qmlRegisterType<TreeDrawer>("BranchAndBound", 1, 0, "TreeDrawer");
+    qmlRegisterType<PdfWriter>("Utils", 1, 0, "PdfWriter");
 
     Backend *backend = new Backend();
     engine.rootContext()->setContextProperty("Backend", backend);

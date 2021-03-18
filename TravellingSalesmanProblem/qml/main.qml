@@ -9,7 +9,7 @@ import "tabs"
 import "baseComponents"
 
 ApplicationWindow {
-    width: 1200
+    width: 1400
     height: 950
     visible: true
     title: qsTr("Travelling salesman")

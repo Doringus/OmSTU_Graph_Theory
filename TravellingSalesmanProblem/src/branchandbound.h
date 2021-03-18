@@ -1,6 +1,8 @@
 #pragma once
 
 #include <QObject>
+#include <QFutureWatcher>
+#include <QPromise>
 
 #include "drawingalgorithm.h"
 
@@ -42,8 +44,13 @@ class BranchAndBound : public QObject {
 public:
     explicit BranchAndBound(QObject *parent = nullptr);
     void start(GraphMatrix &matrix);
+    void start();
+
+    void setMatrix(const GraphMatrix& matrix);
 private:
+    node_t *branchAndBound(node_t *root);
     void iterate();
+    void iterate(node_t *root);
     double findSimpleWay(const GraphMatrix& matrix) const;
     double reduceMatrix(GraphMatrix& matrix) const;
     QList<double> getMinByRows(const GraphMatrix& matrix) const;
@@ -56,10 +63,14 @@ private:
     bool checkLoop(const QList<QPair<int,int>>& edges);
     void removeLoop(node_t *node);
     void deleteTree(node_t *endNode);
+private slots:
+    void handleBB();
 signals:
     void bbFinished(node_t *endNode, node_t *rootNode);
 private:
     double m_LowBound, m_TopBound;
     node_t *m_CurrentNode, *m_RootNode;
+    QList<QFutureWatcher<node_t*>*> m_Watchers;
+    GraphMatrix m_Matrix;
 };
 
