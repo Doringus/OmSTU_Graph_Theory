@@ -23,7 +23,7 @@ void GraphLayout::paint(QPainter *painter) {
         }
     }
 
-    for(auto edge : m_Path) {
+    for(auto edge : m_PathEdges) {
         painter->setPen(QPen(edge.color, 2, Qt::SolidLine, Qt::RoundCap));
         drawEdge(edge, painter);
     }
@@ -72,14 +72,8 @@ void GraphLayout::setAdjacencyMatrix(const GraphMatrix &matrix) {
 }
 
 void GraphLayout::drawPath(const QList<QPair<int, int>>& path) {
-    m_Path.clear();
-    for(const auto& v : path) {
-        edge_t edge;
-        edge.color = Qt::GlobalColor::green;
-        edge.line = {m_Vertices.at(v.first).x(), m_Vertices.at(v.first).y(),
-                    m_Vertices.at(v.second).x(), m_Vertices.at(v.second).y()};
-        m_Path.append(edge);
-    }
+    m_Path = path;
+    createPathEdges();
 }
 
 
@@ -94,8 +88,10 @@ void GraphLayout::setDrawEdges(bool draw) {
 }
 
 void GraphLayout::createEdges() {
-    m_Edges.clear();
     m_Vertices = m_Algorithm->getVertices();
+    createPathEdges();
+    m_Edges.clear();
+
     for(int i = 0; i < m_GraphMatrix.count(); ++i) {
         for(int j = i; j < m_GraphMatrix.count(); ++j) {
             if(!m_GraphMatrix.at(i).at(j) || i == j) {
@@ -122,5 +118,16 @@ void GraphLayout::drawEdge(edge_t &edge, QPainter *painter) {
     path.addPolygon({arrowP1 , arrowP2, edge.line.p2()});
     painter->fillPath(path, Qt::green);
     painter->drawPath(path);
+}
+
+void GraphLayout::createPathEdges() {
+    m_PathEdges.clear();
+    for(const auto& v : m_Path) {
+        edge_t edge;
+        edge.color = Qt::GlobalColor::green;
+        edge.line = {m_Vertices.at(v.first).x(), m_Vertices.at(v.first).y(),
+                    m_Vertices.at(v.second).x(), m_Vertices.at(v.second).y()};
+        m_PathEdges.append(edge);
+    }
 }
 

@@ -186,13 +186,24 @@ Item {
                     Layout.fillWidth: true
                     Layout.preferredHeight:  45
                     color: "#33363F"
-
-                    Text {
+                    Row {
                         anchors.fill: parent
-                        color: "white"
-                        font.pointSize: 18
-                        text: "Граф"
+                        spacing: 10
+
+                        Text {
+                            color: "white"
+                            font.pointSize: 18
+                            text: "Граф"
+                        }
+
+                        RButton {
+                            height: 30
+                            width: 120
+                            text: "Обновить"
+                            onClicked: fr.start()
+                        }
                     }
+
                 }
 
                 /* Graph */

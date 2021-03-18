@@ -28,6 +28,7 @@ public:
 private:
     void createEdges();
     void drawEdge(edge_t& edge, QPainter *painter);
+    void createPathEdges();
 signals:
     void algorithmChanged();
     void adjacencyMatrixChanged();
@@ -37,6 +38,7 @@ private:
     GraphMatrix m_GraphMatrix;
     bool m_DrawEdges;
     QList<QPointF> m_Vertices;
-    QList<edge_t> m_Edges, m_Path;
+    QList<edge_t> m_Edges, m_PathEdges;
+    QList<QPair<int, int>> m_Path;
 };
 
