@@ -3,14 +3,15 @@
 #include <QObject>
 #include <QFutureWatcher>
 #include <QPromise>
+#include <QFutureSynchronizer>
 
 #include "drawingalgorithm.h"
 
 struct node_t {
     node_t *parent = nullptr;
     node_t *left = nullptr, *right = nullptr;
+    QList<node_t*> brothers;
     GraphMatrix matrix;
-    QPair<int, int> edge;
     QList<QPair<int, int>> includedEdges;
     QList<QPair<int, int>> excludedEdges;
     QList<int> visitedVertices;
@@ -25,28 +26,16 @@ struct penalty_t {
     double weight;
 };
 
-
-namespace branchAndBound {
-    void createLeftNode(node_t *leftNode);
-    void createRightNode(node_t *rightNode);
-
-    void splitNode();
-
-    double findSimpleWay(const GraphMatrix& matrix);
-    double reduceMatrix(GraphMatrix& matrix);
-    QList<double> getMinByRows(const GraphMatrix& matrix);
-    QList<double> getMinByColumns(const GraphMatrix& matrix);
-    QList<QPair<int, int>> getPathWithMaxPenalty(const GraphMatrix& matrix);
-}
-
 class BranchAndBound : public QObject {
     Q_OBJECT
 public:
     explicit BranchAndBound(QObject *parent = nullptr);
     void start(GraphMatrix &matrix);
-    void start();
+
 
     void setMatrix(const GraphMatrix& matrix);
+public slots:
+     void start();
 private:
     node_t *branchAndBound(node_t *root);
     void iterate();
@@ -63,14 +52,13 @@ private:
     bool checkLoop(const QList<QPair<int,int>>& edges);
     void removeLoop(node_t *node);
     void deleteTree(node_t *endNode);
-private slots:
-    void handleBB();
 signals:
     void bbFinished(node_t *endNode, node_t *rootNode);
+    void bbSubtreeCreated(BranchAndBound *bb);
 private:
     double m_LowBound, m_TopBound;
     node_t *m_CurrentNode, *m_RootNode;
-    QList<QFutureWatcher<node_t*>*> m_Watchers;
+    QFutureSynchronizer<node_t*> m_Synchronizer;
     GraphMatrix m_Matrix;
 };
 

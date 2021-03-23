@@ -67,7 +67,8 @@ GraphMatrix GraphLayout::getAdjacencyMatrix() const {
 
 void GraphLayout::setAdjacencyMatrix(const GraphMatrix &matrix) {
     m_GraphMatrix = matrix;
-    m_Algorithm->setAdjacencyMatrix(matrix);
+    m_Path.clear();
+    m_Algorithm->setAdjacencyMatrix(matrix);   
     emit adjacencyMatrixChanged();
 }
 

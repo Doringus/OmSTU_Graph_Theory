@@ -5,6 +5,7 @@
 
 #include "tablemodel.h"
 #include "drawingalgorithm.h"
+#include "staticthreadpool.h"
 
 struct node_t;
 class BranchAndBound;
@@ -42,5 +43,6 @@ private:
     TableModel *m_GraphMatrixModel;
     BranchAndBound *m_BranchAndBound;
     QString m_OptimalPathBB;
+    StaticThreadPool m_Pool;
 };
 

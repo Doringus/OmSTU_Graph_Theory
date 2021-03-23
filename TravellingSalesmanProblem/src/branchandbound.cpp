@@ -2,7 +2,7 @@
 
 #include <QDebug>
 #include <iostream>
-#include <QtConcurrent>
+#include <QThread>
 
 const double MAX_VALUE = 9999;
 
@@ -56,25 +56,25 @@ void BranchAndBound::start(GraphMatrix &matrix) {
 }
 
 void BranchAndBound::start() {
-    if(m_Matrix.count() == 0) {
-        return;
-    }
-    if(m_RootNode) {
-        deleteTree(m_RootNode);
+    deleteTree(m_CurrentNode);
+    m_RootNode = new node_t;
+    m_CurrentNode = m_RootNode;
+
+    for(int i = 0; i < m_Matrix.count(); ++i) {
+        m_Matrix[i][i] = MAX_VALUE;
     }
     m_TopBound = findSimpleWay(m_Matrix);
     m_LowBound = reduceMatrix(m_Matrix);
-    m_RootNode = new node_t;
     m_RootNode->matrix = m_Matrix;
     m_RootNode->weight = m_LowBound;
     m_RootNode->isInPath = true;
-    m_CurrentNode = m_RootNode;
-
-    QFutureWatcher<node_t*> watcher;
-    //connect(watcher, &QFutureWatcher<node_t*>::finished, this, &BranchAndBound::handleBB);
-
-  //  QFuture<node_t*> path = QtConcurrent::run(this, &BranchAndBound::branchAndBound, m_CurrentNode);
-
+    printMatrix(m_Matrix);
+    while (m_CurrentNode->visitedVertices.count() < m_Matrix.count()) {
+        iterate();
+    }
+    qDebug() << "FOUND" << QThread::currentThreadId();
+    qDebug() << m_CurrentNode->includedEdges;
+    emit bbFinished(m_CurrentNode, m_RootNode);
 }
 
 void BranchAndBound::setMatrix(const GraphMatrix &matrix) {
@@ -96,6 +96,11 @@ void BranchAndBound::iterate() {
         removeLoop(m_CurrentNode);
     }
     auto penalties = getPathWithMaxPenalty(m_CurrentNode->matrix);
+    if(penalties.isEmpty()) {
+        m_CurrentNode->visitedVertices.append(QList<int>(m_Matrix.count(), 1));
+        m_CurrentNode->weight = MAX_VALUE;
+        return;
+    }
     if(penalties.count() > 1) {
 
     }
@@ -107,9 +112,14 @@ void BranchAndBound::iterate() {
 
     createLeftNode(leftNode, penalties.first().vertices);
     createRightNode(rightNode, penalties.first().vertices);
-    if(rightNode->weight < rightNode->weight) {
+    if(rightNode->weight == leftNode->weight) {
+        BranchAndBound *bb = new BranchAndBound;
+        bb->setMatrix(rightNode->matrix);
+        bb->moveToThread(nullptr);
+        emit bbSubtreeCreated(bb);
+    }
+    if(rightNode->weight < leftNode->weight) {
         if(rightNode->weight > m_TopBound) {
-            /* End */
             m_CurrentNode->visitedVertices.fill(m_RootNode->matrix.count());
             m_CurrentNode = m_RootNode;
             return;
@@ -117,16 +127,15 @@ void BranchAndBound::iterate() {
         m_CurrentNode = rightNode;
     } else {
         if(leftNode->weight > m_TopBound) {
-            /* End */
             m_CurrentNode->visitedVertices.fill(m_RootNode->matrix.count());
             m_CurrentNode = m_RootNode;
             return;
         }
         m_CurrentNode = leftNode;
     }
-    qDebug() << "LEFT" << leftNode->weight << "RIGHT" << rightNode->weight;
-    qDebug() << m_CurrentNode->weight << m_CurrentNode->includedEdges;
-    printMatrix(m_CurrentNode->matrix);
+   // qDebug() << "LEFT" << leftNode->weight << "RIGHT" << rightNode->weight;
+  //  qDebug() << m_CurrentNode->weight << m_CurrentNode->includedEdges;
+  //  printMatrix(m_CurrentNode->matrix);
     m_CurrentNode->isInPath = true;
 }
 
@@ -174,6 +183,7 @@ double BranchAndBound::findSimpleWay(const GraphMatrix &matrix) const {
     for(int i = 0; i < matrix.count() - 1; ++i) {
         weight += matrix[i][i + 1];
     }
+    weight += matrix[matrix.count() - 1][0];
     return weight;
 }
 
@@ -342,8 +352,4 @@ void BranchAndBound::deleteTree(node_t *endNode) {
             delete endNode->right;
         }
     }
-}
-
-void BranchAndBound::handleBB() {
-
 }

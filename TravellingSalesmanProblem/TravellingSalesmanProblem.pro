@@ -13,7 +13,9 @@ SOURCES += \
         src/graphlayout.cpp \
         src/main.cpp \
         src/pdfwriter.cpp \
+        src/staticthreadpool.cpp \
         src/tablemodel.cpp \
+        src/taskqueue.cpp \
         src/treedrawer.cpp
 
 RESOURCES += qml.qrc
@@ -38,5 +40,7 @@ HEADERS += \
     src/graphlayout.h \
     src/matrixloader.h \
     src/pdfwriter.h \
+    src/staticthreadpool.h \
     src/tablemodel.h \
+    src/taskqueue.h \
     src/treedrawer.h
