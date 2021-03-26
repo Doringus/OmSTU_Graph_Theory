@@ -18,17 +18,17 @@ void sortEdges(QVector<QPair<int, int>> &edges) {
 
 Backend::Backend(QObject *parent) : QObject(parent), m_GraphMatrixModel(new TableModel(this)),
                                                     m_BranchAndBound(new BranchAndBound()){
-    connect(m_BranchAndBound, &BranchAndBound::bbFinished, this, &Backend::onBbFinished);
+    //connect(m_BranchAndBound, &BranchAndBound::bbFinished, this, &Backend::onBbFinished, Qt::QueuedConnection);
 }
 
 void Backend::openGraphMatrixFile(const QUrl& url) {
     MatrixLoader loader;
     QList<QList<double>> r = loader.load(url);
     m_GraphMatrixModel->setMatrix(r);
-    m_BranchAndBound->setMatrix(r);
+    m_BranchAndBound->setGraphMatrix(r);
     emit adjacencyMatrixLoaded(r);
   //  m_BranchAndBound->start(r);
-    m_Pool.putTask(m_BranchAndBound);
+ //   m_Pool.putTask(m_BranchAndBound);
 }
 
 QAbstractTableModel *Backend::getGraphMatrix() const {
@@ -54,7 +54,6 @@ void Backend::onBbFinished(node_t *endNode, node_t *rootNode) {
             path+= "->" + QString::number(i);
         }
     } else {
-        qDebug() << "EDGES" << edges;
         path += QString::number(edges.first().first + 1);
         for(const auto& edge : edges) {
             path+= "->" + QString::number(edge.second + 1);

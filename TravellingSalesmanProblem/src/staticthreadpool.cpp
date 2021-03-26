@@ -13,12 +13,17 @@ StaticThreadPool::StaticThreadPool(QObject *parent) : QObject(parent) {
     }
 }
 
-void StaticThreadPool::putTask(BranchAndBound *task) {
-    // We need to remove object thread affinity
-    // so it can be pulled to worker thread
-    connect(task, &BranchAndBound::bbFinished, this, &StaticThreadPool::handleBB, Qt::QueuedConnection);
-    connect(task, &BranchAndBound::bbSubtreeCreated, this, &StaticThreadPool::putTask, Qt::QueuedConnection);
-    task->moveToThread(nullptr);
+StaticThreadPool::~StaticThreadPool() {
+    for(auto& thread : m_Threads) {
+        thread->quit();
+        thread->deleteLater();
+    }
+}
+
+void StaticThreadPool::putTask(BBTask *task) {
+    connect(task, &BBTask::finished, this, &StaticThreadPool::handleBB, Qt::BlockingQueuedConnection);
+    connect(task, &BBTask::subtaskCreated, this, &StaticThreadPool::putTask, Qt::BlockingQueuedConnection);
+    m_TaskCount++;
     m_TaskQueue.put(task);
 }
 
@@ -26,10 +31,14 @@ void StaticThreadPool::workerRoutine() {
     while(true) {
         auto task = m_TaskQueue.take();
         task->moveToThread(QThread::currentThread());
-        task->start();
+        task->run();
     }
 }
 
-void StaticThreadPool::handleBB(node_t *endNode, node_t *rootNode) {
-    qDebug() << endNode->weight << QThread::currentThreadId();
+void StaticThreadPool::handleBB(node_t *endNode) {
+    m_TaskCount--;
+    emit taskFinished(endNode);
+    if(m_TaskCount == 0) {
+        emit taskFinished(nullptr);
+    }
 }

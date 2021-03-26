@@ -5,22 +5,22 @@
 #include <QWaitCondition>
 #include <QQueue>
 
-class BranchAndBound;
+class BBTask;
 
 class TaskQueue : public QObject {
     Q_OBJECT
 public:
     explicit TaskQueue(QObject *parent = nullptr);
 
-    void put(BranchAndBound *task);
+    void put(BBTask *task);
 
-    BranchAndBound *take();
+    BBTask* take();
 
 signals:
 private:
-    BranchAndBound *takeLocked();
+    BBTask* takeLocked();
 private:
-    QQueue<BranchAndBound*> m_Buffer;
+    QQueue<BBTask*> m_Buffer;
     QMutex m_Mutex;
     QWaitCondition m_Wc;
 };

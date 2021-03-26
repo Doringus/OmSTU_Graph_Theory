@@ -6,13 +6,13 @@ TaskQueue::TaskQueue(QObject *parent) : QObject(parent) {
 
 }
 
-void TaskQueue::put(BranchAndBound *task) {
+void TaskQueue::put(BBTask *task) {
     QMutexLocker locker(&m_Mutex);
     m_Buffer.push_back(task);
     m_Wc.wakeOne();
 }
 
-BranchAndBound *TaskQueue::take() {
+BBTask *TaskQueue::take() {
     m_Mutex.lock();
     while(m_Buffer.empty()) {
         m_Wc.wait(&m_Mutex);
@@ -21,8 +21,8 @@ BranchAndBound *TaskQueue::take() {
     return takeLocked();
 }
 
-BranchAndBound *TaskQueue::takeLocked() {
-    BranchAndBound *front = m_Buffer.front();
+BBTask *TaskQueue::takeLocked() {
+    BBTask *front = m_Buffer.front();
     m_Buffer.pop_front();
     return front;
 }

@@ -6,11 +6,12 @@
 #include <QFutureSynchronizer>
 
 #include "drawingalgorithm.h"
+#include "staticthreadpool.h"
 
 struct node_t {
     node_t *parent = nullptr;
     node_t *left = nullptr, *right = nullptr;
-    QList<node_t*> brothers;
+    node_t* brother = nullptr;
     GraphMatrix matrix;
     QList<QPair<int, int>> includedEdges;
     QList<QPair<int, int>> excludedEdges;
@@ -26,24 +27,31 @@ struct penalty_t {
     double weight;
 };
 
-class BranchAndBound : public QObject {
+template<typename Task, typename ...Params>
+Task* createBBTask(Params ...args) {
+    Task *task = new Task(args...);
+    task->moveToThread(nullptr);
+    return task;
+}
+
+class BBTask : public QObject {
     Q_OBJECT
 public:
-    explicit BranchAndBound(QObject *parent = nullptr);
-    void start(GraphMatrix &matrix);
+    explicit BBTask(node_t *rootNode, double topBound, const GraphMatrix& matrix, QObject *parent = nullptr) : QObject(parent),
+                                    m_RootNode(rootNode), m_TopBound(topBound), m_Matrix(matrix){ m_CurrentNode = rootNode;}
+    virtual void run() = 0;
 
-
-    void setMatrix(const GraphMatrix& matrix);
-public slots:
-     void start();
-private:
-    node_t *branchAndBound(node_t *root);
+    double getTopBound() const { return m_TopBound;}
+    node_t* getRootNode() const {return m_RootNode;}
+    node_t* getCurrentNode() const {return m_CurrentNode;}
+    GraphMatrix getMatrix() const {return m_Matrix;}
+public:
     void iterate();
-    void iterate(node_t *root);
-    double findSimpleWay(const GraphMatrix& matrix) const;
-    double reduceMatrix(GraphMatrix& matrix) const;
-    QList<double> getMinByRows(const GraphMatrix& matrix) const;
-    QList<double> getMinByColumns(const GraphMatrix& matrix) const;
+    void createNextBranch(const QPair<int, int>& edge);
+    static double findSimpleWay(const GraphMatrix& matrix);
+    static double reduceMatrix(GraphMatrix& matrix);
+    static QList<double> getMinByRows(const GraphMatrix& matrix);
+    static QList<double> getMinByColumns(const GraphMatrix& matrix);
     QList<penalty_t> getPathWithMaxPenalty(GraphMatrix &matrix) const;
     double getMinByRowExcept(GraphMatrix& matrix, int row, int exceptionIndex) const;
     double getMinByColumnExcept(GraphMatrix& matrix, int col, int exceptionIndex) const;
@@ -53,12 +61,46 @@ private:
     void removeLoop(node_t *node);
     void deleteTree(node_t *endNode);
 signals:
-    void bbFinished(node_t *endNode, node_t *rootNode);
-    void bbSubtreeCreated(BranchAndBound *bb);
-private:
-    double m_LowBound, m_TopBound;
+    void finished(node_t *endNode);
+    void subtaskCreated(BBTask *task);
+protected:
+    double m_TopBound;
     node_t *m_CurrentNode, *m_RootNode;
-    QFutureSynchronizer<node_t*> m_Synchronizer;
     GraphMatrix m_Matrix;
 };
 
+class BranchTask : public BBTask {
+    Q_OBJECT
+public:
+    explicit BranchTask(node_t *rootNode, double topBound, const GraphMatrix& matrix, QObject *parent = nullptr) :
+                                BBTask(rootNode, topBound, matrix, parent) {}
+    void run() override;
+};
+
+class ParallelPenaltyTask : public BBTask {
+    Q_OBJECT
+public:
+    explicit ParallelPenaltyTask(node_t *rootNode, double topBound, const GraphMatrix& matrix, QPair<int, int> edge, QObject *parent = nullptr);
+    void run() override;
+private:
+    QPair<int, int> m_Edge;
+};
+
+class BranchAndBound : public QObject {
+    Q_OBJECT
+public:
+    explicit BranchAndBound(QObject *parent = nullptr);
+    void start();
+    void setGraphMatrix(const GraphMatrix& matrix);
+    void setPenaltyMatrix(const GraphMatrix& penaltyMatrix);
+signals:
+    void bbFinished();
+private slots:
+    void handleBB(node_t *node);
+private:
+    void findOptimalPath();
+private:
+    GraphMatrix m_Matrix, m_PenaltyMatrix;
+    StaticThreadPool m_Pool;
+    QList<node_t*> m_Results;
+};
