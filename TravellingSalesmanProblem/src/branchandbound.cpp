@@ -97,7 +97,7 @@ void BBTask::createNextBranch(const QPair<int, int>& edge) {
 
     createLeftNode(leftNode, edge);
     createRightNode(rightNode, edge);
-    if(rightNode->weight == leftNode->weight) {
+    if(rightNode->weight == leftNode->weight && m_Matrix.count() - m_CurrentNode->visitedVertices.count() > 2) {
         BBTask *task = createBBTask<BranchTask>(rightNode, m_TopBound, m_Matrix);
         emit subtaskCreated(task);
     }
@@ -233,7 +233,6 @@ double BBTask::getMinByColumnExcept(GraphMatrix &matrix, int col, int exceptionI
 }
 
 void BBTask::createLeftNode(node_t *leftNode, const QPair<int, int> &edge) {
-    leftNode->type = ChildType_t::LEFT;
     for(int i = 0; i < leftNode->matrix.count(); ++i) {
         leftNode->matrix[i][edge.second] = MAX_VALUE;
         leftNode->matrix[edge.first][i] = MAX_VALUE;
@@ -246,7 +245,6 @@ void BBTask::createLeftNode(node_t *leftNode, const QPair<int, int> &edge) {
 }
 
 void BBTask::createRightNode(node_t *rightNode, const QPair<int, int> &edge) {
-    rightNode->type = ChildType_t::RIGHT;
     rightNode->matrix[edge.first][edge.second] = MAX_VALUE;
     double weight = reduceMatrix(rightNode->matrix);
     rightNode->weight += weight;
@@ -276,22 +274,6 @@ void BBTask::removeLoop(node_t *node) {
                     node->matrix[i][j] = MAX_VALUE;
                 }
             }
-        }
-    }
-}
-
-void BBTask::deleteTree(node_t *endNode) {
-    while(endNode) {
-        if(!endNode->parent) {
-            delete endNode;
-            break;
-        }
-        endNode = endNode->parent;
-        if(endNode->left) {
-            delete endNode->left;
-        }
-        if(endNode->right) {
-            delete endNode->right;
         }
     }
 }
@@ -344,17 +326,18 @@ void BranchAndBound::findOptimalPath() {
     m_Results.removeOne(endNode);
     qDebug() << "MIN" << node->weight;
     /* Mark optimal path */
+    qDebug() << "ROOT" << m_RootNode;
     while (node != m_RootNode) {
         node->isInPath = true;
         if(node->parent == nullptr && node->brother) {
             // swap subtrees
             std::swap(node->brother->left, node->left);
             std::swap(node->brother->right, node->right);
-            node->brother->isInPath = true;
             node->isInPath = false;
             node = node->brother;
+        } else {
+            node = node->parent;
         }
-        node = node->parent;
     }
     /* Clean other paths */
     for(auto& n : m_Results) {

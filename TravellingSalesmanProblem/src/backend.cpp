@@ -59,7 +59,6 @@ void Backend::onBbFinished(node_t *endNode, node_t *rootNode) {
     }
     path += "\nДлина: " + QString::number(endNode->weight);
     setOptimalPathBB(path);
-    qDebug() << "END NODE" << endNode;
     emit graphPathChanged(endNode->includedEdges);
     emit treeNodeReceived(rootNode);
 }

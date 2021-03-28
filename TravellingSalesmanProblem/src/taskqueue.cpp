@@ -13,11 +13,10 @@ void TaskQueue::put(BBTask *task) {
 }
 
 BBTask *TaskQueue::take() {
-    m_Mutex.lock();
+    QMutexLocker locker(&m_Mutex);
     while(m_Buffer.empty()) {
         m_Wc.wait(&m_Mutex);
     }
-    m_Mutex.unlock();
     return takeLocked();
 }
 

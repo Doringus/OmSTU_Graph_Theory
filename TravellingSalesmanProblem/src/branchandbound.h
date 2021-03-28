@@ -8,12 +8,6 @@
 #include "drawingalgorithm.h"
 #include "staticthreadpool.h"
 
-enum class ChildType_t : unsigned int {
-    NONE = 0,
-    LEFT = 1,
-    RIGHT = 2
-};
-
 struct node_t {
     ~node_t(){};
     node_t *parent = nullptr;
@@ -25,7 +19,6 @@ struct node_t {
     QList<int> visitedVertices;
     double weight;
     bool isInPath = false;
-    ChildType_t type = ChildType_t::NONE;
 };
 Q_DECLARE_METATYPE(node_t)
 
@@ -67,7 +60,6 @@ public:
     void createRightNode(node_t *rightNode, const QPair<int, int> &edge);
     bool checkLoop(const QList<QPair<int,int>>& edges);
     void removeLoop(node_t *node);
-    void deleteTree(node_t *endNode);
     node_t* createNode(node_t *parent);
     node_t* createBroter(node_t *brother);
 signals:
