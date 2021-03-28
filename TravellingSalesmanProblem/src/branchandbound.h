@@ -92,14 +92,15 @@ class BranchAndBound : public QObject {
     Q_OBJECT
 public:
     explicit BranchAndBound(QObject *parent = nullptr);
-    void start();
-    void setGraphMatrix(const GraphMatrix& matrix);
+    void start(const GraphMatrix &matrix);
     void setPenaltyMatrix(const GraphMatrix& penaltyMatrix);
     void findOptimalPath();
 signals:
     void bbFinished(node_t *endNode, node_t *rootNode);
 private slots:
     void handleBB(node_t *node);
+private:
+    void deleteOldTree();
 private:
     GraphMatrix m_Matrix, m_PenaltyMatrix;
     StaticThreadPool m_Pool;

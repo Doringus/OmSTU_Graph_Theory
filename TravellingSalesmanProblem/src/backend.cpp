@@ -1,6 +1,7 @@
 #include "backend.h"
 
 #include "matrixloader.h"
+#include "matrixmultiplier.h"
 #include "branchandbound.h"
 
 QVector<QPair<int, int>> sortEdges(QVector<QPair<int, int>> &edges) {
@@ -23,6 +24,7 @@ QVector<QPair<int, int>> sortEdges(QVector<QPair<int, int>> &edges) {
 }
 
 Backend::Backend(QObject *parent) : QObject(parent), m_GraphMatrixModel(new TableModel(this)),
+                                                    m_PenaltyMatrixModel(new TableModel(this)),
                                                     m_BranchAndBound(new BranchAndBound()){
     connect(m_BranchAndBound, &BranchAndBound::bbFinished, this, &Backend::onBbFinished, Qt::QueuedConnection);
 }
@@ -30,13 +32,39 @@ Backend::Backend(QObject *parent) : QObject(parent), m_GraphMatrixModel(new Tabl
 void Backend::openGraphMatrixFile(const QUrl& url) {
     MatrixLoader loader;
     QList<QList<double>> r = loader.load(url);
+    m_Matrix = r;
     m_GraphMatrixModel->setMatrix(r);
-    m_BranchAndBound->setGraphMatrix(r);
     emit adjacencyMatrixLoaded(r);
+    multiplyMatrix();
 }
+
+void Backend::openPenaltyMatrixFile(const QUrl &url) {
+    MatrixLoader loader;
+    QList<QList<double>> r = loader.load(url);
+    m_PenaltyMatrixModel->setMatrix(r);
+    MatrixMultiplier mm;
+    m_Penalties = r;
+    multiplyMatrix();
+}
+
+void Backend::enablePenalties() {
+    m_PenaltiesEnabled = !m_PenaltiesEnabled;
+}
+
+void Backend::startBB() {
+    if(m_PenaltiesEnabled) {
+        m_BranchAndBound->start(m_PenaltiedMatrix);
+    } else {
+        m_BranchAndBound->start(m_Matrix);
+    }
+ }
 
 QAbstractTableModel *Backend::getGraphMatrix() const {
     return m_GraphMatrixModel;
+}
+
+QAbstractTableModel *Backend::getPenaltyMatrix() const {
+    return m_PenaltyMatrixModel;
 }
 
 QString Backend::getOptimalPathBB() const {
@@ -67,5 +95,13 @@ void Backend::onBbFinished(node_t *endNode, node_t *rootNode) {
     setOptimalPathBB(path);
     emit graphPathChanged(endNode->includedEdges);
     emit treeNodeReceived(rootNode);
+}
+
+void Backend::multiplyMatrix() {
+    if(!m_Matrix.count() || !m_Penalties.count()) {
+        return;
+    }
+    MatrixMultiplier mm;
+    m_PenaltiedMatrix = mm.multiply(m_Matrix, m_Penalties);
 }
 

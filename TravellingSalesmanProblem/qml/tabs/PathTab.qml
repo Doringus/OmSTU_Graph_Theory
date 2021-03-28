@@ -21,6 +21,14 @@ Item {
     }
 
     FileDialog {
+        id: penaltyMatrixDialog
+
+        onAccepted: {
+            Backend.openPenaltyMatrixFile(currentFile)
+        }
+    }
+
+    FileDialog {
         id: savePdfDialog
 
         fileMode: FileDialog.SaveFile
@@ -65,8 +73,6 @@ Item {
                 id: treeDrawer
             }
         }
-
-
     }
 
     Rectangle {
@@ -149,17 +155,59 @@ Item {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     color: "transparent"
+                    ColumnLayout {
+                        anchors.fill: parent
+                        spacing: 20
 
-                    Row {
-                        spacing: 15
-                        Text {
-                            text: qsTr("Матрица усложнения")
-                            color: "white"
-                            font.pointSize: 16
+                        Row {
+                            spacing: 15
+                            Text {
+                                text: qsTr("Матрица усложнения")
+                                color: "white"
+                                font.pointSize: 16
+                            }
+                            RButton {
+                                height: 30
+                                text: "Загрузить"
+                                onClicked: penaltyMatrixDialog.open()
+                            }
+                            /* WARNING!!! Very stupid code here
+                                Im too lazy to create own checkbox */
+                            RButton {
+                                height: 30
+                                width: 200
+                                text: "Включить"
+                                onClicked: {
+                                    if(text === "Включить") {
+                                        text = "Выключить"
+                                    } else {
+                                        text = "Включить"
+                                    }
+
+                                    Backend.enablePenalties()
+                                }
+                            }
                         }
-                        RButton {
-                            height: 30
-                            text: "Загрузить"
+                        TableView {
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                            boundsBehavior: Flickable.StopAtBounds
+                            model: Backend.penaltyMatrix
+
+                            delegate: Rectangle {
+                                implicitWidth: 35
+                                implicitHeight: 35
+                                border.width: 1
+                                border.color: "white"
+                                color: "transparent"
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    text: display
+                                    font.pointSize: 16
+                                    color: "white"
+                               }
+                           }
                         }
                     }
                 }
@@ -241,6 +289,7 @@ Item {
                             anchors.verticalCenter: parent.verticalCenter
                             height: 30
                             text: "Запустить"
+                            onClicked: Backend.startBB()
                         }
 
                         RButton {

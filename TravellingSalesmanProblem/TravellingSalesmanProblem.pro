@@ -39,6 +39,7 @@ HEADERS += \
     src/graphdrawer.h \
     src/graphlayout.h \
     src/matrixloader.h \
+    src/matrixmultiplier.h \
     src/pdfwriter.h \
     src/staticthreadpool.h \
     src/tablemodel.h \

@@ -278,11 +278,20 @@ void BBTask::removeLoop(node_t *node) {
     }
 }
 
-BranchAndBound::BranchAndBound(QObject *parent) : QObject(parent) {
+BranchAndBound::BranchAndBound(QObject *parent) : QObject(parent), m_RootNode(nullptr) {
     connect(&m_Pool, &StaticThreadPool::taskFinished, this, &BranchAndBound::handleBB);
 }
 
-void BranchAndBound::start() {
+void BranchAndBound::start(const GraphMatrix &matrix) {
+    if(!matrix.count()) {
+        return;
+    }
+    deleteOldTree();
+    m_Matrix = matrix;
+    for(int i = 0; i < m_Matrix.count(); ++i) {
+        m_Matrix[i][i] = MAX_VALUE;
+    }
+
     node_t *node = new node_t;
 
     for(int i = 0; i < m_Matrix.count(); ++i) {
@@ -297,14 +306,6 @@ void BranchAndBound::start() {
     m_Pool.putTask(task);
 }
 
-void BranchAndBound::setGraphMatrix(const GraphMatrix &matrix) {
-    m_Matrix = matrix;
-    for(int i = 0; i < m_Matrix.count(); ++i) {
-        m_Matrix[i][i] = MAX_VALUE;
-    }
-    start();
-}
-
 void BranchAndBound::setPenaltyMatrix(const GraphMatrix &penaltyMatrix) {
     m_PenaltyMatrix = penaltyMatrix;
 }
@@ -316,6 +317,24 @@ void BranchAndBound::handleBB(node_t *node) {
         m_Results.append(node);
     }
 
+}
+
+void BranchAndBound::deleteOldTree() {
+    while(m_RootNode) {
+        if(!m_RootNode->left) {
+            delete m_RootNode;
+            break;
+        }
+        if(m_RootNode->left->isInPath) {
+            delete m_RootNode->right;
+            m_RootNode = m_RootNode->left;
+        } else if(m_RootNode->right->isInPath) {
+            delete m_RootNode->left;
+            m_RootNode = m_RootNode->right;
+        }
+
+        delete m_RootNode->parent;
+    }
 }
 
 void BranchAndBound::findOptimalPath() {
