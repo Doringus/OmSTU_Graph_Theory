@@ -286,6 +286,7 @@ void BranchAndBound::start(const GraphMatrix &matrix) {
     if(!matrix.count()) {
         return;
     }
+    m_Results.clear();
     deleteOldTree();
     m_Matrix = matrix;
     for(int i = 0; i < m_Matrix.count(); ++i) {
@@ -312,6 +313,8 @@ void BranchAndBound::setPenaltyMatrix(const GraphMatrix &penaltyMatrix) {
 
 void BranchAndBound::handleBB(node_t *node) {
     if(node == nullptr) {
+        // for profiler (memory)
+        emit lastTaskFinished();
         findOptimalPath();
     } else {
         m_Results.append(node);
@@ -350,6 +353,8 @@ void BranchAndBound::findOptimalPath() {
             // swap subtrees
             std::swap(node->brother->left, node->left);
             std::swap(node->brother->right, node->right);
+            std::swap(node->brother->left->parent, node->left->parent);
+            std::swap(node->brother->right->parent, node->right->parent);
             node->isInPath = false;
             node = node->brother;
         } else {
@@ -375,4 +380,6 @@ void BranchAndBound::findOptimalPath() {
         }
     }
     emit bbFinished(endNode, m_RootNode);
+    // for profiler
+    emit finished();
 }

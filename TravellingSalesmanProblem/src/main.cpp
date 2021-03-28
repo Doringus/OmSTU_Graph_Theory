@@ -11,7 +11,7 @@
 #include "treedrawer.h"
 #include "pdfwriter.h"
 #include "staticthreadpool.h"
-
+#include "bbprofiler.h"
 
 int main(int argc, char *argv[])
 {
@@ -20,6 +20,9 @@ int main(int argc, char *argv[])
 #endif
     QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
     QGuiApplication app(argc, argv);
+
+    BBProfiler pr;
+    pr.start();
 
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/qml/main.qml"));

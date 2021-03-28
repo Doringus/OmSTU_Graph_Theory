@@ -97,6 +97,8 @@ public:
     void findOptimalPath();
 signals:
     void bbFinished(node_t *endNode, node_t *rootNode);
+    void lastTaskFinished();
+    void finished();
 private slots:
     void handleBB(node_t *node);
 private:

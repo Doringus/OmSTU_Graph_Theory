@@ -7,6 +7,7 @@ CONFIG += c++17
 
 SOURCES += \
         src/backend.cpp \
+        src/bbprofiler.cpp \
         src/branchandbound.cpp \
         src/fruchtermanreingold.cpp \
         src/graphdrawer.cpp \
@@ -33,6 +34,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     src/backend.h \
+    src/bbprofiler.h \
     src/branchandbound.h \
     src/drawingalgorithm.h \
     src/fruchtermanreingold.h \
