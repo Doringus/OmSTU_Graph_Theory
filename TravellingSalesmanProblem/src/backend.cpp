@@ -18,7 +18,7 @@ void sortEdges(QVector<QPair<int, int>> &edges) {
 
 Backend::Backend(QObject *parent) : QObject(parent), m_GraphMatrixModel(new TableModel(this)),
                                                     m_BranchAndBound(new BranchAndBound()){
-    //connect(m_BranchAndBound, &BranchAndBound::bbFinished, this, &Backend::onBbFinished, Qt::QueuedConnection);
+    connect(m_BranchAndBound, &BranchAndBound::bbFinished, this, &Backend::onBbFinished, Qt::QueuedConnection);
 }
 
 void Backend::openGraphMatrixFile(const QUrl& url) {
@@ -27,8 +27,6 @@ void Backend::openGraphMatrixFile(const QUrl& url) {
     m_GraphMatrixModel->setMatrix(r);
     m_BranchAndBound->setGraphMatrix(r);
     emit adjacencyMatrixLoaded(r);
-  //  m_BranchAndBound->start(r);
- //   m_Pool.putTask(m_BranchAndBound);
 }
 
 QAbstractTableModel *Backend::getGraphMatrix() const {
@@ -61,6 +59,7 @@ void Backend::onBbFinished(node_t *endNode, node_t *rootNode) {
     }
     path += "\nДлина: " + QString::number(endNode->weight);
     setOptimalPathBB(path);
+    qDebug() << "END NODE" << endNode;
     emit graphPathChanged(endNode->includedEdges);
     emit treeNodeReceived(rootNode);
 }

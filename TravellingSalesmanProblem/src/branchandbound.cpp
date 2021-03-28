@@ -17,7 +17,7 @@ static void printMatrix(const GraphMatrix& matrix) {
     }
 }
 
-static node_t* createNode(node_t *parent) {
+node_t* BBTask::createNode(node_t *parent) {
     node_t *node = new node_t;
     node->weight = parent->weight;
     node->matrix = parent->matrix;
@@ -28,7 +28,7 @@ static node_t* createNode(node_t *parent) {
     return node;
 }
 
-static node_t* createBroter(node_t *brother) {
+node_t* BBTask::createBroter(node_t *brother) {
     node_t *node = new node_t;
     node->weight = brother->weight;
     node->matrix = brother->matrix;
@@ -233,6 +233,7 @@ double BBTask::getMinByColumnExcept(GraphMatrix &matrix, int col, int exceptionI
 }
 
 void BBTask::createLeftNode(node_t *leftNode, const QPair<int, int> &edge) {
+    leftNode->type = ChildType_t::LEFT;
     for(int i = 0; i < leftNode->matrix.count(); ++i) {
         leftNode->matrix[i][edge.second] = MAX_VALUE;
         leftNode->matrix[edge.first][i] = MAX_VALUE;
@@ -245,6 +246,7 @@ void BBTask::createLeftNode(node_t *leftNode, const QPair<int, int> &edge) {
 }
 
 void BBTask::createRightNode(node_t *rightNode, const QPair<int, int> &edge) {
+    rightNode->type = ChildType_t::RIGHT;
     rightNode->matrix[edge.first][edge.second] = MAX_VALUE;
     double weight = reduceMatrix(rightNode->matrix);
     rightNode->weight += weight;
@@ -308,6 +310,7 @@ void BranchAndBound::start() {
     node->weight= BBTask::reduceMatrix(m_Matrix);
     node->matrix = m_Matrix;
     node->isInPath = true;
+    m_RootNode = node;
     BBTask *task = createBBTask<BranchTask>(node, topBound, m_Matrix);
     m_Pool.putTask(task);
 }
@@ -334,9 +337,42 @@ void BranchAndBound::handleBB(node_t *node) {
 }
 
 void BranchAndBound::findOptimalPath() {
-    node_t* minWeight = *std::min_element(m_Results.begin(), m_Results.end(), [](node_t *lhs, node_t *rhs) {
+    node_t* node = *std::min_element(m_Results.begin(), m_Results.end(), [](node_t *lhs, node_t *rhs) {
         return lhs->weight < rhs->weight;
     });
-    qDebug() << "MIN" << minWeight->weight;
-
+    node_t *endNode = node;
+    m_Results.removeOne(endNode);
+    qDebug() << "MIN" << node->weight;
+    /* Mark optimal path */
+    while (node != m_RootNode) {
+        node->isInPath = true;
+        if(node->parent == nullptr && node->brother) {
+            // swap subtrees
+            std::swap(node->brother->left, node->left);
+            std::swap(node->brother->right, node->right);
+            node->brother->isInPath = true;
+            node->isInPath = false;
+            node = node->brother;
+        }
+        node = node->parent;
+    }
+    /* Clean other paths */
+    for(auto& n : m_Results) {
+        while (n) {
+            if(n->isInPath) {
+                break;
+            }
+            node_t *parent = n->parent;
+            if(parent == nullptr) {
+                delete n;
+                break;
+            }
+            if(!parent->isInPath) {
+                delete parent->left;
+                delete parent->right;
+            }
+            n = parent;
+        }
+    }
+    emit bbFinished(endNode, m_RootNode);
 }

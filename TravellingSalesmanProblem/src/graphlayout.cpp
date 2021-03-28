@@ -75,6 +75,7 @@ void GraphLayout::setAdjacencyMatrix(const GraphMatrix &matrix) {
 void GraphLayout::drawPath(const QList<QPair<int, int>>& path) {
     m_Path = path;
     createPathEdges();
+    update();
 }
 
 

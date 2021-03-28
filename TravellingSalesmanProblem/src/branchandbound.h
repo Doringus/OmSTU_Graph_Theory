@@ -8,7 +8,14 @@
 #include "drawingalgorithm.h"
 #include "staticthreadpool.h"
 
+enum class ChildType_t : unsigned int {
+    NONE = 0,
+    LEFT = 1,
+    RIGHT = 2
+};
+
 struct node_t {
+    ~node_t(){};
     node_t *parent = nullptr;
     node_t *left = nullptr, *right = nullptr;
     node_t* brother = nullptr;
@@ -18,6 +25,7 @@ struct node_t {
     QList<int> visitedVertices;
     double weight;
     bool isInPath = false;
+    ChildType_t type = ChildType_t::NONE;
 };
 Q_DECLARE_METATYPE(node_t)
 
@@ -60,6 +68,8 @@ public:
     bool checkLoop(const QList<QPair<int,int>>& edges);
     void removeLoop(node_t *node);
     void deleteTree(node_t *endNode);
+    node_t* createNode(node_t *parent);
+    node_t* createBroter(node_t *brother);
 signals:
     void finished(node_t *endNode);
     void subtaskCreated(BBTask *task);
@@ -93,14 +103,14 @@ public:
     void start();
     void setGraphMatrix(const GraphMatrix& matrix);
     void setPenaltyMatrix(const GraphMatrix& penaltyMatrix);
+    void findOptimalPath();
 signals:
-    void bbFinished();
+    void bbFinished(node_t *endNode, node_t *rootNode);
 private slots:
     void handleBB(node_t *node);
-private:
-    void findOptimalPath();
 private:
     GraphMatrix m_Matrix, m_PenaltyMatrix;
     StaticThreadPool m_Pool;
     QList<node_t*> m_Results;
+    node_t *m_RootNode;
 };

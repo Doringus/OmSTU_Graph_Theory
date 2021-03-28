@@ -43,9 +43,6 @@ Item {
         }
         function onGraphPathChanged(path) {
             layout.drawPath(path)
-            layout.grabToImage(function(result){
-                result.saveToFile("test.png")
-            })
         }
         function onTreeNodeReceived(node) {
             treeDrawer.root = node
@@ -66,8 +63,6 @@ Item {
             ScrollBar.vertical.policy: ScrollBar.AlwaysOn
             TreeDrawer {
                 id: treeDrawer
-
-
             }
         }
 
