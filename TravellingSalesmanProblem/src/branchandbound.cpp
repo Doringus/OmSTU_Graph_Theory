@@ -324,9 +324,7 @@ void BranchAndBound::findOptimalPath() {
     });
     node_t *endNode = node;
     m_Results.removeOne(endNode);
-    qDebug() << "MIN" << node->weight;
     /* Mark optimal path */
-    qDebug() << "ROOT" << m_RootNode;
     while (node != m_RootNode) {
         node->isInPath = true;
         if(node->parent == nullptr && node->brother) {

@@ -3,17 +3,23 @@
 #include "matrixloader.h"
 #include "branchandbound.h"
 
-void sortEdges(QVector<QPair<int, int>> &edges) {
-    QPair<int, int> currentEdge = edges.first();
-    for(int i = 1; i < edges.count() - 1; ++i) {
-        for(int j = i + 1; j < edges.count(); ++j) {
-            if(edges[j].first == currentEdge.second) {
-                currentEdge = edges[j];
-                edges.swapItemsAt(i, j);
-                break;
-            }
-        }
+QVector<QPair<int, int>> sortEdges(QVector<QPair<int, int>> &edges) {
+    QVector<QPair<int, int>> result;
+    result.reserve(edges.size());
+    result.append(edges.first());
+    edges.removeFirst();
+    QPair<int, int> currentEdge = result.first();
+
+    while(edges.count() > 0) {
+        auto isNext = [&](const QPair<int, int>& edge) {
+            return edge.first == currentEdge.second;
+        };
+        auto nextEdge = std::find_if(edges.begin(), edges.end(), isNext);
+        result.append(*nextEdge);
+        currentEdge = *nextEdge;
+        edges.removeOne(*nextEdge);
     }
+    return result;
 }
 
 Backend::Backend(QObject *parent) : QObject(parent), m_GraphMatrixModel(new TableModel(this)),
@@ -45,7 +51,7 @@ void Backend::setOptimalPathBB(const QString &path) {
 void Backend::onBbFinished(node_t *endNode, node_t *rootNode) {
     QString path("Оптимальный путь:\n");
     QVector<QPair<int, int>> edges = endNode->includedEdges;
-    sortEdges(edges);
+    edges = sortEdges(edges);
     if(edges.count() == 0) {
         path += "0";
         for(int i = 1; i < endNode->matrix.count(); ++i) {
