@@ -6,6 +6,7 @@ import Qt.labs.platform
 
 import GraphDrawer 1.0
 import BranchAndBound 1.0
+import Utils 1.0
 
 import "../baseComponents"
 
@@ -13,9 +14,26 @@ Item {
 
     FileDialog {
         id: graphMatrixDialog
+
         onAccepted: {
             Backend.openGraphMatrixFile(currentFile)
         }
+    }
+
+    FileDialog {
+        id: savePdfDialog
+
+        fileMode: FileDialog.SaveFile
+        nameFilters: ["Pdf files (*.pdf)"]
+        onAccepted: {
+            layout.grabToImage(function(result) {
+                writer.saveToFile(savePdfDialog.currentFile, result.image, Backend.optimalPathBB)
+            })
+        }
+    }
+
+    PdfWriter {
+        id: writer
     }
 
     Connections {
@@ -45,8 +63,6 @@ Item {
             ScrollBar.vertical.policy: ScrollBar.AlwaysOn
             TreeDrawer {
                 id: treeDrawer
-
-
             }
         }
 
@@ -165,13 +181,24 @@ Item {
                     Layout.fillWidth: true
                     Layout.preferredHeight:  45
                     color: "#33363F"
-
-                    Text {
+                    Row {
                         anchors.fill: parent
-                        color: "white"
-                        font.pointSize: 18
-                        text: "Граф"
+                        spacing: 10
+
+                        Text {
+                            color: "white"
+                            font.pointSize: 18
+                            text: "Граф"
+                        }
+
+                        RButton {
+                            height: 30
+                            width: 120
+                            text: "Обновить"
+                            onClicked: fr.start()
+                        }
                     }
+
                 }
 
                 /* Graph */
@@ -222,6 +249,13 @@ Item {
                             width: 120
                             text: "Подробнее"
                             onClicked: treePopup.open()
+                        }
+                        RButton {
+                            anchors.verticalCenter: parent.verticalCenter
+                            height: 30
+                            width: 120
+                            text: "Сохранить"
+                            onClicked: savePdfDialog.open()
                         }
                     }
                 }

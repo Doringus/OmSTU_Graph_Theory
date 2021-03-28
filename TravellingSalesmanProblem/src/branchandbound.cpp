@@ -2,6 +2,7 @@
 
 #include <QDebug>
 #include <iostream>
+#include <QThread>
 
 const double MAX_VALUE = 9999;
 
@@ -16,7 +17,7 @@ static void printMatrix(const GraphMatrix& matrix) {
     }
 }
 
-static node_t* createNode(node_t *parent) {
+node_t* BBTask::createNode(node_t *parent) {
     node_t *node = new node_t;
     node->weight = parent->weight;
     node->matrix = parent->matrix;
@@ -27,52 +28,81 @@ static node_t* createNode(node_t *parent) {
     return node;
 }
 
-BranchAndBound::BranchAndBound(QObject *parent) : QObject(parent),
-                                                m_RootNode(nullptr), m_CurrentNode(nullptr){
-
+node_t* BBTask::createBroter(node_t *brother) {
+    node_t *node = new node_t;
+    node->weight = brother->weight;
+    node->matrix = brother->matrix;
+    node->brother = brother;
+    node->excludedEdges = brother->excludedEdges;
+    node->includedEdges = brother->includedEdges;
+    node->visitedVertices = brother->visitedVertices;
+    return node;
 }
 
-void BranchAndBound::start(GraphMatrix &matrix) {
-    deleteTree(m_CurrentNode);
-    m_RootNode = new node_t;
-    m_CurrentNode = m_RootNode;
-
-    for(int i = 0; i < matrix.count(); ++i) {
-        matrix[i][i] = MAX_VALUE;
-    }
-    m_TopBound = findSimpleWay(matrix);
-    m_LowBound = reduceMatrix(matrix);
-    m_RootNode->matrix = matrix;
-    m_RootNode->weight = m_LowBound;
-    m_RootNode->isInPath = true;
-    printMatrix(matrix);
-    while (m_CurrentNode->visitedVertices.count() < matrix.count()) {
+///////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////// BranchTask //////////////////////////////////////////////
+void BranchTask::run() {
+    while(m_CurrentNode->visitedVertices.count() < m_Matrix.count()) {
         iterate();
     }
-    qDebug() << "FOUND";
-    qDebug() << m_CurrentNode->includedEdges;
-    emit bbFinished(m_CurrentNode, m_RootNode);
+    emit finished(m_CurrentNode);
 }
 
-void BranchAndBound::iterate() {
+///////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////// ParallelPenaltyTask ///////////////////////////////////////
+
+ParallelPenaltyTask::ParallelPenaltyTask(node_t *rootNode, double topBound, const GraphMatrix &matrix, QPair<int, int> edge, QObject *parent) :
+                                        BBTask(rootNode, topBound, matrix, parent),
+                                        m_Edge(std::move(edge)) {
+
+}
+
+void ParallelPenaltyTask::run() {
+    createNextBranch(m_Edge);
+    while(m_CurrentNode->visitedVertices.count() < m_Matrix.count()) {
+        iterate();
+    }
+    emit finished(m_CurrentNode);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////BranchAndBound/////////////////////////////////////////////
+
+void BBTask::iterate() {
     if(m_CurrentNode->visitedVertices.count() != m_CurrentNode->matrix.count() - 1) {
         removeLoop(m_CurrentNode);
     }
     auto penalties = getPathWithMaxPenalty(m_CurrentNode->matrix);
-    if(penalties.count() > 1) {
-
+    if(penalties.isEmpty()) {
+        m_CurrentNode->visitedVertices.append(QList<int>(m_Matrix.count(), 1));
+        m_CurrentNode->weight = MAX_VALUE;
+        return;
     }
+    if(penalties.count() > 1) {
+        for(int i = 1; i < penalties.count(); ++i) {
+            node_t *brother = createBroter(m_CurrentNode);
+            BBTask *task = createBBTask<ParallelPenaltyTask>(brother, m_TopBound, m_Matrix, penalties.at(i).vertices);
+            emit subtaskCreated(task);
+        }
+    }
+   createNextBranch(penalties.first().vertices);
+}
+
+void BBTask::createNextBranch(const QPair<int, int>& edge) {
     node_t *leftNode = createNode(m_CurrentNode);
     node_t *rightNode = createNode(m_CurrentNode);
 
     m_CurrentNode->left = leftNode;
     m_CurrentNode->right = rightNode;
 
-    createLeftNode(leftNode, penalties.first().vertices);
-    createRightNode(rightNode, penalties.first().vertices);
-    if(rightNode->weight < rightNode->weight) {
+    createLeftNode(leftNode, edge);
+    createRightNode(rightNode, edge);
+    if(rightNode->weight == leftNode->weight && m_Matrix.count() - m_CurrentNode->visitedVertices.count() > 2) {
+        BBTask *task = createBBTask<BranchTask>(rightNode, m_TopBound, m_Matrix);
+        emit subtaskCreated(task);
+    }
+    if(rightNode->weight < leftNode->weight) {
         if(rightNode->weight > m_TopBound) {
-            /* End */
             m_CurrentNode->visitedVertices.fill(m_RootNode->matrix.count());
             m_CurrentNode = m_RootNode;
             return;
@@ -80,28 +110,24 @@ void BranchAndBound::iterate() {
         m_CurrentNode = rightNode;
     } else {
         if(leftNode->weight > m_TopBound) {
-            /* End */
             m_CurrentNode->visitedVertices.fill(m_RootNode->matrix.count());
             m_CurrentNode = m_RootNode;
             return;
         }
         m_CurrentNode = leftNode;
     }
-    qDebug() << "LEFT" << leftNode->weight << "RIGHT" << rightNode->weight;
-    qDebug() << m_CurrentNode->weight << m_CurrentNode->includedEdges;
-    printMatrix(m_CurrentNode->matrix);
-    m_CurrentNode->isInPath = true;
 }
 
-double BranchAndBound::findSimpleWay(const GraphMatrix &matrix) const {
+double BBTask::findSimpleWay(const GraphMatrix &matrix) {
     double weight = 0;
     for(int i = 0; i < matrix.count() - 1; ++i) {
         weight += matrix[i][i + 1];
     }
+    weight += matrix[matrix.count() - 1][0];
     return weight;
 }
 
-double BranchAndBound::reduceMatrix(GraphMatrix &matrix) const {
+double BBTask::reduceMatrix(GraphMatrix &matrix) {
     QList<double> rowReduce = getMinByRows(matrix);
     for(int i = 0; i < matrix.count(); ++i) {
         for(int j = 0; j < matrix.count(); ++j) {
@@ -125,7 +151,7 @@ double BranchAndBound::reduceMatrix(GraphMatrix &matrix) const {
     return minBound;
 }
 
-QList<double> BranchAndBound::getMinByRows(const GraphMatrix &matrix) const {
+QList<double> BBTask::getMinByRows(const GraphMatrix &matrix) {
     QList<double> minByRows;
     for(auto& row : matrix) {
         double min = *std::min_element(row.begin(), row.end());
@@ -137,7 +163,7 @@ QList<double> BranchAndBound::getMinByRows(const GraphMatrix &matrix) const {
     return minByRows;
 }
 
-QList<double> BranchAndBound::getMinByColumns(const GraphMatrix &matrix) const {
+QList<double> BBTask::getMinByColumns(const GraphMatrix &matrix) {
     QList<double> minByColumns;
     for(int j = 0; j < matrix.count(); ++j) {
         double min = MAX_VALUE;
@@ -154,7 +180,7 @@ QList<double> BranchAndBound::getMinByColumns(const GraphMatrix &matrix) const {
     return minByColumns;
 }
 
-QList<penalty_t> BranchAndBound::getPathWithMaxPenalty(GraphMatrix &matrix) const {
+QList<penalty_t> BBTask::getPathWithMaxPenalty(GraphMatrix &matrix) const {
     QList<penalty_t> penalties;
     for(int i = 0; i < matrix.count(); ++i) {
         for(int j = 0; j < matrix.count(); ++j) {
@@ -182,7 +208,7 @@ QList<penalty_t> BranchAndBound::getPathWithMaxPenalty(GraphMatrix &matrix) cons
     return result;
 }
 
-double BranchAndBound::getMinByRowExcept(GraphMatrix &matrix, int row, int exceptionIndex) const {
+double BBTask::getMinByRowExcept(GraphMatrix &matrix, int row, int exceptionIndex) const {
     double value = matrix[row][exceptionIndex];
     matrix[row][exceptionIndex] = MAX_VALUE;
     double min = *std::min_element(matrix.at(row).begin(), matrix.at(row).end());
@@ -190,7 +216,7 @@ double BranchAndBound::getMinByRowExcept(GraphMatrix &matrix, int row, int excep
     return min;
 }
 
-double BranchAndBound::getMinByColumnExcept(GraphMatrix &matrix, int col, int exceptionIndex) const {
+double BBTask::getMinByColumnExcept(GraphMatrix &matrix, int col, int exceptionIndex) const {
     double min = MAX_VALUE;
     double value = matrix[exceptionIndex][col];
     matrix[exceptionIndex][col] = MAX_VALUE;
@@ -206,7 +232,7 @@ double BranchAndBound::getMinByColumnExcept(GraphMatrix &matrix, int col, int ex
     return min;
 }
 
-void BranchAndBound::createLeftNode(node_t *leftNode, const QPair<int, int> &edge) {
+void BBTask::createLeftNode(node_t *leftNode, const QPair<int, int> &edge) {
     for(int i = 0; i < leftNode->matrix.count(); ++i) {
         leftNode->matrix[i][edge.second] = MAX_VALUE;
         leftNode->matrix[edge.first][i] = MAX_VALUE;
@@ -218,7 +244,7 @@ void BranchAndBound::createLeftNode(node_t *leftNode, const QPair<int, int> &edg
     leftNode->visitedVertices.append(edge.second);
 }
 
-void BranchAndBound::createRightNode(node_t *rightNode, const QPair<int, int> &edge) {
+void BBTask::createRightNode(node_t *rightNode, const QPair<int, int> &edge) {
     rightNode->matrix[edge.first][edge.second] = MAX_VALUE;
     double weight = reduceMatrix(rightNode->matrix);
     rightNode->weight += weight;
@@ -226,7 +252,7 @@ void BranchAndBound::createRightNode(node_t *rightNode, const QPair<int, int> &e
 }
 
 /*!  WARNING! VERY STUPID CODE HERE!!!*/
-bool BranchAndBound::checkLoop(const QList<QPair<int, int>> &edges) {
+bool BBTask::checkLoop(const QList<QPair<int, int>> &edges) {
     QSet<int> vertices;
     for(const auto& edge : edges) {
         vertices.insert(edge.first);
@@ -238,7 +264,7 @@ bool BranchAndBound::checkLoop(const QList<QPair<int, int>> &edges) {
     return vertices.empty();
 }
 
-void BranchAndBound::removeLoop(node_t *node) {
+void BBTask::removeLoop(node_t *node) {
     for(int i = 0; i < node->matrix.count(); ++i) {
         for(int j = 0; j < node->matrix.count(); ++j) {
             if(node->matrix.at(i).at(j) != MAX_VALUE) {
@@ -252,18 +278,84 @@ void BranchAndBound::removeLoop(node_t *node) {
     }
 }
 
-void BranchAndBound::deleteTree(node_t *endNode) {
-    while(endNode) {
-        if(!endNode->parent) {
-            delete endNode;
-            break;
-        }
-        endNode = endNode->parent;
-        if(endNode->left) {
-            delete endNode->left;
-        }
-        if(endNode->right) {
-            delete endNode->right;
+BranchAndBound::BranchAndBound(QObject *parent) : QObject(parent) {
+    connect(&m_Pool, &StaticThreadPool::taskFinished, this, &BranchAndBound::handleBB);
+}
+
+void BranchAndBound::start() {
+    node_t *node = new node_t;
+
+    for(int i = 0; i < m_Matrix.count(); ++i) {
+        m_Matrix[i][i] = MAX_VALUE;
+    }
+    double topBound = BBTask::findSimpleWay(m_Matrix);
+    node->weight= BBTask::reduceMatrix(m_Matrix);
+    node->matrix = m_Matrix;
+    node->isInPath = true;
+    m_RootNode = node;
+    BBTask *task = createBBTask<BranchTask>(node, topBound, m_Matrix);
+    m_Pool.putTask(task);
+}
+
+void BranchAndBound::setGraphMatrix(const GraphMatrix &matrix) {
+    m_Matrix = matrix;
+    for(int i = 0; i < m_Matrix.count(); ++i) {
+        m_Matrix[i][i] = MAX_VALUE;
+    }
+    start();
+}
+
+void BranchAndBound::setPenaltyMatrix(const GraphMatrix &penaltyMatrix) {
+    m_PenaltyMatrix = penaltyMatrix;
+}
+
+void BranchAndBound::handleBB(node_t *node) {
+    if(node == nullptr) {
+        findOptimalPath();
+    } else {
+        m_Results.append(node);
+    }
+
+}
+
+void BranchAndBound::findOptimalPath() {
+    node_t* node = *std::min_element(m_Results.begin(), m_Results.end(), [](node_t *lhs, node_t *rhs) {
+        return lhs->weight < rhs->weight;
+    });
+    node_t *endNode = node;
+    m_Results.removeOne(endNode);
+    qDebug() << "MIN" << node->weight;
+    /* Mark optimal path */
+    qDebug() << "ROOT" << m_RootNode;
+    while (node != m_RootNode) {
+        node->isInPath = true;
+        if(node->parent == nullptr && node->brother) {
+            // swap subtrees
+            std::swap(node->brother->left, node->left);
+            std::swap(node->brother->right, node->right);
+            node->isInPath = false;
+            node = node->brother;
+        } else {
+            node = node->parent;
         }
     }
+    /* Clean other paths */
+    for(auto& n : m_Results) {
+        while (n) {
+            if(n->isInPath) {
+                break;
+            }
+            node_t *parent = n->parent;
+            if(parent == nullptr) {
+                delete n;
+                break;
+            }
+            if(!parent->isInPath) {
+                delete parent->left;
+                delete parent->right;
+            }
+            n = parent;
+        }
+    }
+    emit bbFinished(endNode, m_RootNode);
 }
