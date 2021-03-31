@@ -195,8 +195,8 @@ Item {
                             model: Backend.penaltyMatrix
 
                             delegate: Rectangle {
-                                implicitWidth: 35
-                                implicitHeight: 35
+                                implicitWidth: 40
+                                implicitHeight: 40
                                 border.width: 1
                                 border.color: "white"
                                 color: "transparent"

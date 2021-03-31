@@ -31,7 +31,9 @@ void StaticThreadPool::workerRoutine() {
     while(true) {
         auto task = m_TaskQueue.take();
         task->moveToThread(QThread::currentThread());
-        task->run();
+        if(task != nullptr) {
+            task->run();
+        }
     }
 }
 

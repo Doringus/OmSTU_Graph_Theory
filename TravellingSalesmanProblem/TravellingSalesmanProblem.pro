@@ -14,6 +14,7 @@ SOURCES += \
         src/graphlayout.cpp \
         src/main.cpp \
         src/pdfwriter.cpp \
+        src/profilerbackend.cpp \
         src/staticthreadpool.cpp \
         src/tablemodel.cpp \
         src/taskqueue.cpp \
@@ -43,6 +44,7 @@ HEADERS += \
     src/matrixloader.h \
     src/matrixmultiplier.h \
     src/pdfwriter.h \
+    src/profilerbackend.h \
     src/staticthreadpool.h \
     src/tablemodel.h \
     src/taskqueue.h \

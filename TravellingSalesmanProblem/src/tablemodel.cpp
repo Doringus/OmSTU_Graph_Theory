@@ -9,7 +9,10 @@ int TableModel::rowCount(const QModelIndex &) const {
 }
 
 int TableModel::columnCount(const QModelIndex &) const {
-    return m_Data.count();
+    if(!m_Data.isEmpty()) {
+        return m_Data.first().count();
+    }
+    return 0;
 }
 
 QVariant TableModel::data(const QModelIndex &index, int role) const {
@@ -30,5 +33,17 @@ QHash<int, QByteArray> TableModel::roleNames() const {
 void TableModel::setMatrix(const QList<QList<double>>& data) {
     beginResetModel();
     m_Data = data;
+    endResetModel();
+}
+
+void TableModel::insertRow(const QList<double> &row) {
+    beginInsertRows(QModelIndex(), m_Data.size(), m_Data.size() + 1);
+    m_Data.append(row);
+    endInsertRows();
+}
+
+void TableModel::clearTable() {
+    beginResetModel();
+    m_Data.clear();
     endResetModel();
 }

@@ -92,6 +92,8 @@ void BBTask::createNextBranch(const QPair<int, int>& edge) {
     node_t *leftNode = createNode(m_CurrentNode);
     node_t *rightNode = createNode(m_CurrentNode);
 
+    m_CurrentNode->matrix.clear();
+
     m_CurrentNode->left = leftNode;
     m_CurrentNode->right = rightNode;
 

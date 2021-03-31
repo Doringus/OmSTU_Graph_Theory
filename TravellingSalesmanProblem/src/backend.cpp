@@ -25,6 +25,7 @@ QVector<QPair<int, int>> sortEdges(QVector<QPair<int, int>> &edges) {
 
 Backend::Backend(QObject *parent) : QObject(parent), m_GraphMatrixModel(new TableModel(this)),
                                                     m_PenaltyMatrixModel(new TableModel(this)),
+                                                    m_ProfilerTableModel(new TableModel(this)),
                                                     m_BranchAndBound(new BranchAndBound()){
     connect(m_BranchAndBound, &BranchAndBound::bbFinished, this, &Backend::onBbFinished, Qt::QueuedConnection);
 }
@@ -65,6 +66,10 @@ QAbstractTableModel *Backend::getGraphMatrix() const {
 
 QAbstractTableModel *Backend::getPenaltyMatrix() const {
     return m_PenaltyMatrixModel;
+}
+
+QAbstractTableModel *Backend::getProfilerTable() const {
+    return m_ProfilerTableModel;
 }
 
 QString Backend::getOptimalPathBB() const {

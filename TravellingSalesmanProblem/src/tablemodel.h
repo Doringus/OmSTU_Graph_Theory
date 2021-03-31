@@ -14,6 +14,9 @@ public:
     QVariant data(const QModelIndex& index, int role) const override;
     QHash<int, QByteArray> roleNames() const override;
     void setMatrix(const QList<QList<double> > &data);
+
+    void insertRow(const QList<double>& row);
+    void clearTable();
 private:
     QList<QList<double>> m_Data;
 };

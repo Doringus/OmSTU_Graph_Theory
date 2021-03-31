@@ -20,6 +20,7 @@ class Backend : public QObject {
 
     Q_PROPERTY(QAbstractTableModel* penaltyMatrix READ getPenaltyMatrix NOTIFY penaltyMatrixChanged)
 
+    Q_PROPERTY(QAbstractTableModel* profilerTable READ getProfilerTable NOTIFY profilerTableChanged)
     /*!
         Path from branch and bound alg
     */
@@ -34,6 +35,7 @@ public:
 
     QAbstractTableModel* getGraphMatrix() const;
     QAbstractTableModel* getPenaltyMatrix() const;
+    QAbstractTableModel* getProfilerTable() const;
 
     QString getOptimalPathBB() const;
     void setOptimalPathBB(const QString& path);
@@ -44,12 +46,13 @@ private:
 signals:
     void graphMatrixChanged();
     void penaltyMatrixChanged();
+    void profilerTableChanged();
     void adjacencyMatrixLoaded(const GraphMatrix& matrix);
     void optimalPathBBChanged();
     void graphPathChanged(const QList<QPair<int, int>>& path);
     void treeNodeReceived(node_t *node);
 private:
-    TableModel *m_GraphMatrixModel, *m_PenaltyMatrixModel;
+    TableModel *m_GraphMatrixModel, *m_PenaltyMatrixModel, *m_ProfilerTableModel;
     BranchAndBound *m_BranchAndBound;
     QString m_OptimalPathBB;
     StaticThreadPool m_Pool;
