@@ -20,7 +20,7 @@ BBProfiler::BBProfiler(QObject *parent) : QObject(parent) {
 void BBProfiler::start() {
     for(size_t i = 1; i < 20; ++i) {
         GraphMatrix matrix;
-        fillRandomMatrix(i * 10, matrix);
+        fillRandomMatrix(120, matrix);
         m_Tests.append(matrix);
     }
     runTest();

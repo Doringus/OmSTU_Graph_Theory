@@ -8,20 +8,57 @@
 #include "drawingalgorithm.h"
 #include "staticthreadpool.h"
 
+class Node {
+public:
+    Node();
+    Node(const Node& other);
+    ~Node();
+
+    QList<QPair<int, int>> getIncludedEdges();
+    void removeLoops();
+
+
+    Node *parent, *left, *right, *brother;
+    GraphMatrix matrix;
+    QList<QPair<int, int>> includedEdges;
+    QList<QList<QPair<int, int>>> edges;
+    QList<QPair<int, int>> excludedEdges;
+    QList<int> visitedVertices;
+    double weight;
+    bool isInPath;
+};
+
 struct node_t {
-    ~node_t(){};
+    ~node_t() {
+        if(left != nullptr) {
+            delete left;
+            left = nullptr;
+        }
+        if(right != nullptr) {
+            delete right;
+            right = nullptr;
+        }
+    };
+    node_t(){};
+    node_t(const node_t& other) : parent(other.parent),
+    left(other.left), right(other.right), brother(other.brother),
+    matrix(other.matrix), includedEdges(other.includedEdges),
+    excludedEdges(other.excludedEdges), visitedVertices(other.visitedVertices),
+    weight(other.weight), isInPath(other.isInPath) {}
+
     node_t *parent = nullptr;
     node_t *left = nullptr, *right = nullptr;
     node_t* brother = nullptr;
     GraphMatrix matrix;
     QList<QPair<int, int>> includedEdges;
+    QList<QList<QPair<int, int>>> edges;
     QList<QPair<int, int>> excludedEdges;
     QList<int> visitedVertices;
     double weight;
     bool isInPath = false;
 };
 Q_DECLARE_METATYPE(node_t)
-
+Q_DECLARE_TYPEINFO(node_t, Q_RELOCATABLE_TYPE);
 
 struct penalty_t {
     QPair<int, int> vertices;
@@ -39,11 +76,10 @@ class BBTask : public QObject {
     Q_OBJECT
 public:
     explicit BBTask(node_t *rootNode, double topBound, const GraphMatrix& matrix, QObject *parent = nullptr) : QObject(parent),
-                                    m_RootNode(rootNode), m_TopBound(topBound), m_Matrix(matrix){ m_CurrentNode = rootNode;}
+                                   m_TopBound(topBound), m_Matrix(matrix){ m_CurrentNode = rootNode;}
     virtual void run() = 0;
 
     double getTopBound() const { return m_TopBound;}
-    node_t* getRootNode() const {return m_RootNode;}
     node_t* getCurrentNode() const {return m_CurrentNode;}
     GraphMatrix getMatrix() const {return m_Matrix;}
 public:
@@ -67,7 +103,7 @@ signals:
     void subtaskCreated(BBTask *task);
 protected:
     double m_TopBound;
-    node_t *m_CurrentNode, *m_RootNode;
+    node_t *m_CurrentNode;
     GraphMatrix m_Matrix;
 };
 

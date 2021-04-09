@@ -43,7 +43,6 @@ void Backend::openPenaltyMatrixFile(const QUrl &url) {
     MatrixLoader loader;
     QList<QList<double>> r = loader.load(url);
     m_PenaltyMatrixModel->setMatrix(r);
-    MatrixMultiplier mm;
     m_Penalties = r;
     multiplyMatrix();
 }
@@ -82,15 +81,17 @@ void Backend::setOptimalPathBB(const QString &path) {
 }
 
 void Backend::onBbFinished(node_t *endNode, node_t *rootNode) {
+    qDebug() << "EDGES: " << endNode->includedEdges;
     QString path("Оптимальный путь:\n");
     QVector<QPair<int, int>> edges = endNode->includedEdges;
-    edges = sortEdges(edges);
     if(edges.count() == 0) {
-        path += "0";
-        for(int i = 1; i < endNode->matrix.count(); ++i) {
+        path += "1";
+        for(int i = 2; i <= m_Matrix.count(); ++i) {
             path+= "->" + QString::number(i);
         }
+        path += "->1";
     } else {
+        edges = sortEdges(edges);
         path += QString::number(edges.first().first + 1);
         for(const auto& edge : edges) {
             path+= "->" + QString::number(edge.second + 1);
