@@ -21,7 +21,7 @@ SOURCES += \
         src/treedrawer.cpp
 
 RESOURCES += qml.qrc
-
+QMAKE_CXXFLAGS += -O2
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH =
 

@@ -80,10 +80,10 @@ void Backend::setOptimalPathBB(const QString &path) {
     emit optimalPathBBChanged();
 }
 
-void Backend::onBbFinished(node_t *endNode, node_t *rootNode) {
-    qDebug() << "EDGES: " << endNode->includedEdges;
+void Backend::onBbFinished(Node *endNode, Node *rootNode) {
+    qDebug() << "EDGES: " << endNode->getIncludedEdges();
     QString path("Оптимальный путь:\n");
-    QVector<QPair<int, int>> edges = endNode->includedEdges;
+    QList<QPair<int, int>> edges = endNode->getIncludedEdges();
     if(edges.count() == 0) {
         path += "1";
         for(int i = 2; i <= m_Matrix.count(); ++i) {
@@ -91,15 +91,15 @@ void Backend::onBbFinished(node_t *endNode, node_t *rootNode) {
         }
         path += "->1";
     } else {
-        edges = sortEdges(edges);
+       // edges = sortEdges(edges);
         path += QString::number(edges.first().first + 1);
         for(const auto& edge : edges) {
             path+= "->" + QString::number(edge.second + 1);
         }
     }
-    path += "\nДлина: " + QString::number(endNode->weight);
+    path += "\nДлина: " + QString::number(endNode->getWeight());
     setOptimalPathBB(path);
-    emit graphPathChanged(endNode->includedEdges);
+    emit graphPathChanged(endNode->getIncludedEdges());
     emit treeNodeReceived(rootNode);
 }
 

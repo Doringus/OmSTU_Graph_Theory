@@ -18,9 +18,9 @@ BBProfiler::BBProfiler(QObject *parent) : QObject(parent) {
 }
 
 void BBProfiler::start() {
-    for(size_t i = 1; i < 20; ++i) {
+    for(size_t i = 1; i < 30; ++i) {
         GraphMatrix matrix;
-        fillRandomMatrix(120, matrix);
+        fillRandomMatrix(i * 15, matrix);
         m_Tests.append(matrix);
     }
     runTest();
