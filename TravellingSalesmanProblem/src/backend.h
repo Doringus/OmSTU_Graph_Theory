@@ -7,7 +7,7 @@
 #include "drawingalgorithm.h"
 #include "staticthreadpool.h"
 
-struct node_t;
+class Node;
 class BranchAndBound;
 
 class Backend : public QObject {
@@ -40,7 +40,7 @@ public:
     QString getOptimalPathBB() const;
     void setOptimalPathBB(const QString& path);
 private slots:
-    void onBbFinished(node_t *endNode, node_t *rootNode);
+    void onBbFinished(Node *endNode, Node *rootNode);
 private:
     void multiplyMatrix();
 signals:
@@ -50,7 +50,7 @@ signals:
     void adjacencyMatrixLoaded(const GraphMatrix& matrix);
     void optimalPathBBChanged();
     void graphPathChanged(const QList<QPair<int, int>>& path);
-    void treeNodeReceived(node_t *node);
+    void treeNodeReceived(Node *node);
 private:
     TableModel *m_GraphMatrixModel, *m_PenaltyMatrixModel, *m_ProfilerTableModel;
     BranchAndBound *m_BranchAndBound;

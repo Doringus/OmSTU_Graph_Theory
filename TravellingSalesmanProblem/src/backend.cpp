@@ -43,7 +43,6 @@ void Backend::openPenaltyMatrixFile(const QUrl &url) {
     MatrixLoader loader;
     QList<QList<double>> r = loader.load(url);
     m_PenaltyMatrixModel->setMatrix(r);
-    MatrixMultiplier mm;
     m_Penalties = r;
     multiplyMatrix();
 }
@@ -81,24 +80,26 @@ void Backend::setOptimalPathBB(const QString &path) {
     emit optimalPathBBChanged();
 }
 
-void Backend::onBbFinished(node_t *endNode, node_t *rootNode) {
+void Backend::onBbFinished(Node *endNode, Node *rootNode) {
+    qDebug() << "EDGES: " << endNode->getIncludedEdges();
     QString path("Оптимальный путь:\n");
-    QVector<QPair<int, int>> edges = endNode->includedEdges;
-    edges = sortEdges(edges);
+    QList<QPair<int, int>> edges = endNode->getIncludedEdges();
     if(edges.count() == 0) {
-        path += "0";
-        for(int i = 1; i < endNode->matrix.count(); ++i) {
+        path += "1";
+        for(int i = 2; i <= m_Matrix.count(); ++i) {
             path+= "->" + QString::number(i);
         }
+        path += "->1";
     } else {
+       // edges = sortEdges(edges);
         path += QString::number(edges.first().first + 1);
         for(const auto& edge : edges) {
             path+= "->" + QString::number(edge.second + 1);
         }
     }
-    path += "\nДлина: " + QString::number(endNode->weight);
+    path += "\nДлина: " + QString::number(endNode->getWeight());
     setOptimalPathBB(path);
-    emit graphPathChanged(endNode->includedEdges);
+    emit graphPathChanged(endNode->getIncludedEdges());
     emit treeNodeReceived(rootNode);
 }
 

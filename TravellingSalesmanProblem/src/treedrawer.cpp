@@ -31,51 +31,51 @@ void TreeDrawer::paint(QPainter *painter) {
     int level = 1;
     int rectY = 50;
     // Draw root node
-    drawNode(painter, m_RootX, rectY, "", QString::number(m_Root->weight), m_Root->isInPath);
+    drawNode(painter, m_RootX, rectY, "", QString::number(m_Root->getWeight()), m_Root->isInPath());
 
     int leftRectX = m_RootX - rectWidth / 2  - horizontalSpacing;
     int rightRectX = m_RootX + rectWidth / 2 + horizontalSpacing;
     int parentX = m_RootX;
 
-    node_t *root = m_Root;
+    Node *root = m_Root;
 
     while(root) {
-        if(!root->left && !root->right) {
+        if(!root->getLeftChild() && !root->getRightChild()) {
             break;
         }
         rectY += rectHeight + verticalSpacing;
 
         //draw childrens
-        drawNode(painter, leftRectX, rectY, getPairText(root->left->includedEdges.last()),
-                 QString::number(root->left->weight), root->left->isInPath);
-        drawNode(painter, rightRectX, rectY, "!" + getPairText(root->right->excludedEdges.last()),
-                 QString::number(root->right->weight), root->right->isInPath);
+        drawNode(painter, leftRectX, rectY, getPairText(root->getLeftChild()->getLastIncludedEdge()),
+                 QString::number(root->getLeftChild()->getWeight()), root->getLeftChild()->isInPath());
+        drawNode(painter, rightRectX, rectY, "!" + getPairText(root->getRightChild()->getLastExcludedEdge()),
+                 QString::number(root->getRightChild()->getWeight()), root->getRightChild()->isInPath());
 
         //draw edges
         painter->drawLine(QPointF(leftRectX + rectWidth / 2, rectY), QPointF(parentX + rectWidth / 2, rectY - verticalSpacing));
         painter->drawLine(QPointF(rightRectX + rectWidth / 2, rectY), QPointF(parentX + rectWidth / 2, rectY - verticalSpacing));
 
-        if(root->left->left) {
+        if(root->getLeftChild()->getLeftChild()) {
             parentX = leftRectX;
             leftRectX = leftRectX - (rectWidth / 2 + horizontalSpacing);
             rightRectX = leftRectX + rectWidth + horizontalSpacing;
-            root = root->left;
+            root = root->getLeftChild();
 
         } else {
             parentX = rightRectX;
             leftRectX = rightRectX - rectWidth / 2 - horizontalSpacing;
             rightRectX += rectWidth / 2 + horizontalSpacing;
-            root = root->right;
+            root = root->getRightChild();
         }
         level++;
     }
 }
 
-node_t *TreeDrawer::getRoot() const {
+Node *TreeDrawer::getRoot() const {
     return m_Root;
 }
 
-void TreeDrawer::setRoot(node_t *root) {
+void TreeDrawer::setRoot(Node *root) {
     m_Root = root;
 
     // find level with min X at left node
@@ -99,17 +99,17 @@ void TreeDrawer::setRoot(node_t *root) {
             maxWidth = rightRectX;
         }
 
-        if(!root->left && !root->right) {
+        if(!root->getLeftChild() && !root->getRightChild()) {
             break;
         }
-        if(root->left->left) {
-            root = root->left;
+        if(root->getLeftChild()->getLeftChild()) {
+            root = root->getLeftChild();
             leftRectX = leftRectX - (rectWidth / 2 + horizontalSpacing);
             rightRectX = leftRectX + rectWidth + horizontalSpacing;
         } else {
             leftRectX = rightRectX - rectWidth / 2 - horizontalSpacing;
             rightRectX += rectWidth / 2 + horizontalSpacing;
-            root = root->right;
+            root = root->getRightChild();
         }
     }
     m_RootX = rectX;
