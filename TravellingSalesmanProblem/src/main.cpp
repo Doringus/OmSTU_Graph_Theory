@@ -10,7 +10,6 @@
 #include "backend.h"
 #include "treedrawer.h"
 #include "pdfwriter.h"
-#include "staticthreadpool.h"
 #include "profilerbackend.h"
 
 int main(int argc, char *argv[]) {
@@ -32,7 +31,6 @@ int main(int argc, char *argv[]) {
     qmlRegisterType<FruchtermanReingold>("GraphDrawer", 1, 0, "FruchtermanReingold");
     qmlRegisterType<TreeDrawer>("BranchAndBound", 1, 0, "TreeDrawer");
     qmlRegisterType<PdfWriter>("Utils", 1, 0, "PdfWriter");
-    StaticThreadPool pool;
     Backend *backend = new Backend();
     ProfilerBackend *profilerBackend = new ProfilerBackend();
     engine.rootContext()->setContextProperty("Backend", backend);

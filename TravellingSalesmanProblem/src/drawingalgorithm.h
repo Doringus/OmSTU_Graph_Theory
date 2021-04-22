@@ -6,7 +6,7 @@
 #include <QColor>
 #include <QLineF>
 
-using GraphMatrix = QList<QList<double>>;
+#include "common.h"
 
 struct edge_t {
     QLineF line;

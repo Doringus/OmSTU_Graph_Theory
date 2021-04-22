@@ -3,6 +3,7 @@
 #include "matrixloader.h"
 #include "matrixmultiplier.h"
 #include "branchandbound.h"
+#include "ga.h"
 
 QVector<QPair<int, int>> sortEdges(QVector<QPair<int, int>> &edges) {
     QVector<QPair<int, int>> result;
@@ -26,8 +27,10 @@ QVector<QPair<int, int>> sortEdges(QVector<QPair<int, int>> &edges) {
 Backend::Backend(QObject *parent) : QObject(parent), m_GraphMatrixModel(new TableModel(this)),
                                                     m_PenaltyMatrixModel(new TableModel(this)),
                                                     m_ProfilerTableModel(new TableModel(this)),
-                                                    m_BranchAndBound(new BranchAndBound()){
+                                                    m_BranchAndBound(new BranchAndBound()),
+                                                    m_GeneticAlgorithm(new GeneticAlgorithm()){
     connect(m_BranchAndBound, &BranchAndBound::bbFinished, this, &Backend::onBbFinished, Qt::QueuedConnection);
+    connect(m_GeneticAlgorithm, &GeneticAlgorithm::finished, this, &Backend::onGaFinished, Qt::QueuedConnection);
 }
 
 void Backend::openGraphMatrixFile(const QUrl& url) {
@@ -57,7 +60,15 @@ void Backend::startBB() {
     } else {
         m_BranchAndBound->start(m_Matrix);
     }
- }
+}
+
+void Backend::startGA() {
+    if(m_PenaltiesEnabled) {
+        m_GeneticAlgorithm->start(m_PenaltiedMatrix);
+    } else {
+        m_GeneticAlgorithm->start(m_Matrix);
+    }
+}
 
 QAbstractTableModel *Backend::getGraphMatrix() const {
     return m_GraphMatrixModel;
@@ -101,6 +112,10 @@ void Backend::onBbFinished(Node *endNode, Node *rootNode) {
     setOptimalPathBB(path);
     emit graphPathChanged(endNode->getIncludedEdges());
     emit treeNodeReceived(rootNode);
+}
+
+void Backend::onGaFinished(double optimalDistance, QList<int> optimalPath) {
+    qDebug() << optimalDistance << optimalPath;
 }
 
 void Backend::multiplyMatrix() {

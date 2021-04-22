@@ -345,6 +345,7 @@ Item {
                             anchors.verticalCenter: parent.verticalCenter
                             height: 30
                             text: "Запустить"
+                            onClicked: Backend.startGA()
                         }
 
                         RButton {

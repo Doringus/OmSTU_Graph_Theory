@@ -5,7 +5,7 @@
 #include <QPromise>
 #include <QFutureSynchronizer>
 
-#include "drawingalgorithm.h"
+#include "common.h"
 #include "staticthreadpool.h"
 
 class Node {
