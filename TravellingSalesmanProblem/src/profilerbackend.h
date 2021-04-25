@@ -29,7 +29,7 @@ private slots:
 
 private:
     TableModel *m_ProfilerTableModel;
-    BBProfiler m_Profiler;
+    BBProfiler  m_Profiler;
     bool m_IsRunning;
 };
 

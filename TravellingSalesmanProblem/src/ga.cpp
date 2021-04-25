@@ -24,7 +24,7 @@ void GeneticAlgorithm::start(const GraphMatrix& matrix) {
 
     std::random_device rd;
     std::mt19937 g(rd());
-    for(int i = 0; i < 20; ++i) {
+    for(int i = 0; i < m_PopulationSize; ++i) {
         std::shuffle(tmp.begin(), tmp.end(), g);
         m_CurrentPopulation.append(tmp);
     }
@@ -34,7 +34,7 @@ void GeneticAlgorithm::start(const GraphMatrix& matrix) {
     // number of generations
 
     std::uniform_real_distribution<double> d(0.0, 1.0);
-    for(int i = 0; i < 60; ++i) {
+    for(int i = 0; i < m_Generations; ++i) {
         Population nextGeneration;
         nextGeneration.reserve(m_CurrentPopulation.count());
         while (nextGeneration.count() < m_CurrentPopulation.count()) {
@@ -64,6 +64,24 @@ void GeneticAlgorithm::start(const GraphMatrix& matrix) {
     }
     double result = ga::calculateDistance(m_Matrix, m_BestSoFarPath);
     emit finished(result, m_BestSoFarPath);
+}
+
+int GeneticAlgorithm::getPopulationSize() const noexcept {
+    return m_PopulationSize;
+}
+
+void GeneticAlgorithm::setPopulationSize(int populationSize) noexcept {
+    m_PopulationSize = populationSize;
+    emit populationSizeChanged();
+}
+
+int GeneticAlgorithm::getGenerations() const noexcept {
+    return m_Generations;
+}
+
+void GeneticAlgorithm::setGenerations(int generations) noexcept {
+    m_Generations = generations;
+    emit generationsChanged();
 }
 
 void GeneticAlgorithm::findBestPath() {

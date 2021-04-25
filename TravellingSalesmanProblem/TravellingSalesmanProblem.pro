@@ -44,6 +44,7 @@ HEADERS += \
     src/ga.h \
     src/graphdrawer.h \
     src/graphlayout.h \
+    src/ialgorithm.h \
     src/matrixloader.h \
     src/matrixmultiplier.h \
     src/pdfwriter.h \

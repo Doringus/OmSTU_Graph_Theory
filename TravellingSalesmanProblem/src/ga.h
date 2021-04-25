@@ -4,7 +4,7 @@
 #include <QList>
 #include <QPair>
 
-#include "common.h"
+#include "ialgorithm.h"
 
 typedef QList<QList<int>> Population;
 
@@ -114,13 +114,24 @@ namespace ga {
     };
 }
 
-class GeneticAlgorithm : public QObject {
+class GeneticAlgorithm : public IAlgorithm {
     Q_OBJECT
+
+    Q_PROPERTY(int populationSize READ getPopulationSize WRITE setPopulationSize NOTIFY populationSizeChanged)
+    Q_PROPERTY(int generations READ getGenerations WRITE setGenerations NOTIFY generationsChanged)
 public:
-    GeneticAlgorithm(QObject *parent = nullptr) : QObject(parent){}
-    void start(const GraphMatrix& matrix);
+    GeneticAlgorithm(QObject *parent = nullptr) : IAlgorithm(parent), m_Generations(20), m_PopulationSize(10) {}
+    Q_INVOKABLE virtual void start(const GraphMatrix& matrix) override;
+
+    int getPopulationSize() const noexcept;
+    void setPopulationSize(int populationSize) noexcept;
+
+    int getGenerations() const noexcept;
+    void setGenerations(int generations) noexcept;
 signals:
     void finished(double optimalPath, QList<int> path);
+    void populationSizeChanged();
+    void generationsChanged();
 private:
     void findBestPath();
     void calculateFitness();
@@ -129,5 +140,6 @@ private:
     Population m_CurrentPopulation;
     QList<double> m_CurrentFitness;
     double m_BestSoFar;
+    int m_PopulationSize, m_Generations;
     QList<int> m_BestSoFarPath;
 };

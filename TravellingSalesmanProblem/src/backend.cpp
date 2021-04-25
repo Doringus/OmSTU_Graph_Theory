@@ -27,10 +27,16 @@ QVector<QPair<int, int>> sortEdges(QVector<QPair<int, int>> &edges) {
 Backend::Backend(QObject *parent) : QObject(parent), m_GraphMatrixModel(new TableModel(this)),
                                                     m_PenaltyMatrixModel(new TableModel(this)),
                                                     m_ProfilerTableModel(new TableModel(this)),
-                                                    m_BranchAndBound(new BranchAndBound()),
-                                                    m_GeneticAlgorithm(new GeneticAlgorithm()){
-    connect(m_BranchAndBound, &BranchAndBound::bbFinished, this, &Backend::onBbFinished, Qt::QueuedConnection);
-    connect(m_GeneticAlgorithm, &GeneticAlgorithm::finished, this, &Backend::onGaFinished, Qt::QueuedConnection);
+                                                    m_CurrentAlgorithmIndex(0) {
+//    connect(m_BranchAndBound, &BranchAndBound::bbFinished, this, &Backend::onBbFinished, Qt::QueuedConnection);
+//    connect(m_GeneticAlgorithm, &GeneticAlgorithm::finished, this, &Backend::onGaFinished, Qt::QueuedConnection);
+    m_OptimalPaths.fill("", 2);
+    BranchAndBound *bb = new BranchAndBound(this);
+    connect(bb, &BranchAndBound::bbFinished, this, &Backend::onBbFinished, Qt::QueuedConnection);
+    GeneticAlgorithm *ga = new GeneticAlgorithm(this);
+    connect(ga, &GeneticAlgorithm::finished, this, &Backend::onGaFinished, Qt::QueuedConnection);
+    m_Algorithms.append(bb);
+    m_Algorithms.append(ga);
 }
 
 void Backend::openGraphMatrixFile(const QUrl& url) {
@@ -54,19 +60,11 @@ void Backend::enablePenalties() {
     m_PenaltiesEnabled = !m_PenaltiesEnabled;
 }
 
-void Backend::startBB() {
+GraphMatrix Backend::getLoadedMatrix() {
     if(m_PenaltiesEnabled) {
-        m_BranchAndBound->start(m_PenaltiedMatrix);
+        return m_PenaltiedMatrix;
     } else {
-        m_BranchAndBound->start(m_Matrix);
-    }
-}
-
-void Backend::startGA() {
-    if(m_PenaltiesEnabled) {
-        m_GeneticAlgorithm->start(m_PenaltiedMatrix);
-    } else {
-        m_GeneticAlgorithm->start(m_Matrix);
+        return m_Matrix;
     }
 }
 
@@ -82,13 +80,27 @@ QAbstractTableModel *Backend::getProfilerTable() const {
     return m_ProfilerTableModel;
 }
 
-QString Backend::getOptimalPathBB() const {
-    return m_OptimalPathBB;
+IAlgorithm *Backend::getCurrentAlgorithm() const {
+    return m_Algorithms.at(m_CurrentAlgorithmIndex);
 }
 
-void Backend::setOptimalPathBB(const QString &path) {
-    m_OptimalPathBB = path;
-    emit optimalPathBBChanged();
+QString Backend::getOptimalPath() const {
+    return m_OptimalPaths.at(m_CurrentAlgorithmIndex);
+}
+
+void Backend::setOptimalPath(const QString &path) {
+    m_OptimalPaths[m_CurrentAlgorithmIndex] = std::move(path);
+    emit optimalPathChanged();
+}
+
+int Backend::getCurrentAlgorithmIndex() const {
+    return m_CurrentAlgorithmIndex;
+}
+
+void Backend::setCurrentAlgorithmIndex(int index) {
+    m_CurrentAlgorithmIndex = index;
+    emit currentAlgorithmIndexChanged();
+    emit algorithmChanged();
 }
 
 void Backend::onBbFinished(Node *endNode, Node *rootNode) {
@@ -109,13 +121,26 @@ void Backend::onBbFinished(Node *endNode, Node *rootNode) {
         }
     }
     path += "\nДлина: " + QString::number(endNode->getWeight());
-    setOptimalPathBB(path);
+    setOptimalPath(path);
     emit graphPathChanged(endNode->getIncludedEdges());
     emit treeNodeReceived(rootNode);
 }
 
 void Backend::onGaFinished(double optimalDistance, QList<int> optimalPath) {
     qDebug() << optimalDistance << optimalPath;
+    QString path("Оптимальный путь:\n");
+    for(const auto& p : optimalPath) {
+        path += QString::number(p + 1) + "->";
+    }
+    path += QString::number(optimalPath.first() + 1);
+    path += "\nДлина: " + QString::number(optimalDistance);
+    setOptimalPath(path);
+    QList<QPair<int, int>> edges;
+    for(int i = 1; i < optimalPath.count(); ++i) {
+        edges.append({optimalPath.at(i - 1), optimalPath.at(i)});
+    }
+    edges.append({optimalPath.last(), optimalPath.first()});
+    emit graphPathChanged(edges);
 }
 
 void Backend::multiplyMatrix() {

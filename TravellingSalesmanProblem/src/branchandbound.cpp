@@ -114,7 +114,7 @@ void BBTask::createNextBranch(const QPair<int, int>& edge) {
     }
 }
 
-BranchAndBound::BranchAndBound(QObject *parent) : QObject(parent), m_RootNode(nullptr) {
+BranchAndBound::BranchAndBound(QObject *parent) : IAlgorithm(parent), m_RootNode(nullptr) {
     connect(&m_Pool, &StaticThreadPool::taskFinished, this, &BranchAndBound::handleBB);
 }
 
@@ -141,10 +141,6 @@ void BranchAndBound::start(const GraphMatrix &matrix) {
     m_RootNode = node;
     BBTask *task = createBBTask<BranchTask>(node, topBound, m_Matrix.count());
     m_Pool.putTask(task);
-}
-
-void BranchAndBound::setPenaltyMatrix(const GraphMatrix &penaltyMatrix) {
-    m_PenaltyMatrix = penaltyMatrix;
 }
 
 void BranchAndBound::handleBB(Node *node) {

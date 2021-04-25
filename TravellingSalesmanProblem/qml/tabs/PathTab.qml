@@ -9,6 +9,7 @@ import BranchAndBound 1.0
 import Utils 1.0
 
 import "../baseComponents"
+import "../components"
 
 Item { 
 
@@ -75,6 +76,7 @@ Item {
         }
     }
 
+
     Rectangle {
         anchors.fill: parent
         color: "#3E424E"
@@ -83,176 +85,17 @@ Item {
     RowLayout {
         anchors.fill: parent
         spacing: 0
-
-        /* Matrix input */
         Rectangle {
-            Layout.preferredWidth: parent.width / 2
+            Layout.preferredWidth: parent.width * 0.6
             Layout.fillHeight: true
-            color: "transparent"
+            color: "#3E424E"
 
             ColumnLayout {
                 anchors.fill: parent
-                anchors.margins: 20
-                spacing: 10
-
-                /* Graph matrix */
+                spacing: 0
                 Rectangle {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    color: "transparent"
-
-                    ColumnLayout {
-                        anchors.fill: parent
-                        spacing: 20
-
-                        Row {
-                            spacing: 15
-                            Text {
-                                text: qsTr("Матрица графа")
-                                color: "white"
-                                font.pointSize: 16
-                            }
-
-                            RButton {
-                                height: 30
-                                text: "Загрузить"
-                                onClicked: graphMatrixDialog.open()
-                            }
-                        }
-
-                        TableView {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            boundsBehavior: Flickable.StopAtBounds
-                            model: Backend.graphMatrix
-
-                            delegate: Rectangle {
-                                implicitWidth: 35
-                                implicitHeight: 35
-                                border.width: 1
-                                border.color: "white"
-                                color: "transparent"
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: display
-                                    font.pointSize: 16
-                                    color: "white"
-                               }
-                           }
-                        }
-                    }
-                }
-
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight:  1
-                    color: "#CCCDCF"
-                }
-
-                /* Amplification factor matrix */
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    color: "transparent"
-                    ColumnLayout {
-                        anchors.fill: parent
-                        spacing: 20
-
-                        Row {
-                            spacing: 15
-                            Text {
-                                text: qsTr("Матрица усложнения")
-                                color: "white"
-                                font.pointSize: 16
-                            }
-                            RButton {
-                                height: 30
-                                text: "Загрузить"
-                                onClicked: penaltyMatrixDialog.open()
-                            }
-                            /* WARNING!!! Very stupid code here
-                                Im too lazy to create own checkbox */
-                            RButton {
-                                height: 30
-                                width: 200
-                                text: "Включить"
-                                onClicked: {
-                                    if(text === "Включить") {
-                                        text = "Выключить"
-                                    } else {
-                                        text = "Включить"
-                                    }
-
-                                    Backend.enablePenalties()
-                                }
-                            }
-                        }
-                        TableView {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            boundsBehavior: Flickable.StopAtBounds
-                            model: Backend.penaltyMatrix
-
-                            delegate: Rectangle {
-                                implicitWidth: 40
-                                implicitHeight: 40
-                                border.width: 1
-                                border.color: "white"
-                                color: "transparent"
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: display
-                                    font.pointSize: 16
-                                    color: "white"
-                               }
-                           }
-                        }
-                    }
-                }
-            }
-        }
-
-        Rectangle {
-            Layout.preferredWidth: parent.width / 2
-            Layout.fillHeight: true
-            border.color: "#33363F"
-            border.width: 15
-            color: "#272A31"
-
-            ColumnLayout {
-                anchors.fill: parent
-                anchors.margins: 15
-
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight:  45
-                    color: "#33363F"
-                    Row {
-                        anchors.fill: parent
-                        spacing: 10
-
-                        Text {
-                            color: "white"
-                            font.pointSize: 18
-                            text: "Граф"
-                        }
-
-                        RButton {
-                            height: 30
-                            width: 120
-                            text: "Обновить"
-                            onClicked: fr.start()
-                        }
-                    }
-
-                }
-
-                /* Graph */
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.minimumHeight: 400
                     color: "transparent"
 
                     FruchtermanReingold {
@@ -261,6 +104,7 @@ Item {
                         height: layout.height - 30
                         showSteps: false
                     }
+
                     GraphLayout {
                         id: layout
                         anchors.fill: parent
@@ -269,98 +113,143 @@ Item {
                     }
                 }
 
-                /* Path algorithms */
-
                 Rectangle {
                     Layout.fillWidth: true
-                    Layout.preferredHeight:  45
-                    color: "#33363F"
-                    Row {
-                        anchors.fill: parent
-                        spacing: 10
+                    Layout.preferredHeight: parent.height * 0.25
+                    color: "#1C1E23"
 
-                        Text {
-                            color: "white"
-                            font.pointSize: 18
-                            text: "Метод ветвей и границ"
-                        }
-
-                        RButton {
-                            anchors.verticalCenter: parent.verticalCenter
-                            height: 30
-                            text: "Запустить"
-                            onClicked: Backend.startBB()
-                        }
-
-                        RButton {
-                            anchors.verticalCenter: parent.verticalCenter
-                            height: 30
-                            width: 120
-                            text: "Подробнее"
-                            onClicked: treePopup.open()
-                        }
-                        RButton {
-                            anchors.verticalCenter: parent.verticalCenter
-                            height: 30
-                            width: 120
-                            text: "Сохранить"
-                            onClicked: savePdfDialog.open()
-                        }
-                    }
-                }
-
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    color: "transparent"
                     TextArea {
                         anchors.fill: parent
+                        anchors.margins: 10
                         color: "white"
                         font.pointSize: 14
-                        text: Backend.optimalPathBB
+                        text: Backend.optimalPath
                         readOnly: true
                         background: Rectangle {
-                            anchors.fill: parent
                             color: "transparent"
                         }
                     }
                 }
+            }
+        }
 
+        Rectangle {
+            Layout.preferredWidth: 2
+            Layout.fillHeight: true
+            color: "#282C35"
+        }
+
+        Rectangle {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            color: "#33363F"
+            Column {
+                anchors.fill: parent
+                spacing: 10
+
+                RComboBox {
+                    id: algorithmBox
+
+                    height: 50
+                    width: parent.width
+                    model: ["Метод ветвей и границ", "Генетический алгоритм"]
+                    Component.onCompleted: currentIndex = Backend.currentAlgorithmIndex
+                    onActivated: Backend.currentAlgorithmIndex = currentIndex
+                }
+
+                //// Matrix input ////
                 Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight:  45
-                    color: "#33363F"
+                    id: matrixInput
 
-                    Row {
-                        anchors.fill: parent
-                        spacing: 10
+                    height: 100
+                    width: parent.width
+                    color: "transparent"
+                    GridLayout {
+                        columns: 4
+                        rows: 2
+                        columnSpacing: 15
+                        rowSpacing: 20
 
                         Text {
+                            text: "Матрица"
+                            font.pointSize: 16
                             color: "white"
-                            font.pointSize: 18
-                            text: "Генетический алгоритм"
                         }
-
                         RButton {
-                            anchors.verticalCenter: parent.verticalCenter
                             height: 30
-                            text: "Запустить"
-                            onClicked: Backend.startGA()
+                            text: "Загрузить"
+                            onClicked: graphMatrixDialog.open()
                         }
-
+                        Text {
+                            Layout.row: 1
+                            text: "Усложнение"
+                            font.pointSize: 16
+                            color: "white"
+                        }
                         RButton {
-                            anchors.verticalCenter: parent.verticalCenter
                             height: 30
-                            width: 120
-                            text: "Подробнее"
+                            text: "Загрузить"
+                            onClicked: penaltyMatrixDialog.open()
+                        }
+                        RButton {
+                            height: 30
+                            text: "Включить"
+                            onClicked: {
+                                if(text === "Включить") {
+                                    text = "Выключить"
+                                } else {
+                                    text = "Включить"
+                                }
+                                Backend.enablePenalties()
+                            }
+                        }
+                    }
+                }
+                //// Spacing ////
+                Rectangle {
+                    width: parent.width
+                    height: 1
+                    color: "#42454A"
+                }
+
+                //// Algorithm settings ////
+                Rectangle {
+                    height: parent.height - start.height - matrixInput.height - 100
+                    width: parent.width
+                    color: "transparent"
+
+                    StackLayout {
+                        anchors.fill: parent
+                        currentIndex: algorithmBox.currentIndex
+
+                        Item {
+
+                        }
+                        GASettings {
+                            id: gaSettings
+
+                            Binding {
+                                target: Backend.currentAlgorithm
+                                property: "populationSize"
+                                value: gaSettings.populationSize
+                            }
+                            Binding {
+                                target: Backend.currentAlgorithm
+                                property: "generations"
+                                value: gaSettings.generations
+                            }
                         }
                     }
                 }
 
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    color: "transparent"
+                //// Start ////
+                RButton {
+                    id: start
+                    height: 60
+                    width: parent.width * 0.7
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: "Запустить"
+                    onClicked: Backend.currentAlgorithm.start(Backend.getLoadedMatrix())
                 }
             }
         }

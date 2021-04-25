@@ -5,7 +5,7 @@
 #include <QPromise>
 #include <QFutureSynchronizer>
 
-#include "common.h"
+#include "ialgorithm.h"
 #include "staticthreadpool.h"
 
 class Node {
@@ -123,12 +123,11 @@ private:
     QPair<int, int> m_Edge;
 };
 
-class BranchAndBound : public QObject {
+class BranchAndBound : public IAlgorithm {
     Q_OBJECT
 public:
     explicit BranchAndBound(QObject *parent = nullptr);
-    void start(const GraphMatrix &matrix);
-    void setPenaltyMatrix(const GraphMatrix& penaltyMatrix);
+    Q_INVOKABLE virtual void start(const GraphMatrix &matrix) override;
     void findOptimalPath();
 signals:
     void bbFinished(Node *endNode, Node *rootNode);
@@ -139,7 +138,7 @@ private slots:
 private:
     void deleteOldTree();
 private:
-    GraphMatrix m_Matrix, m_PenaltyMatrix;
+    GraphMatrix m_Matrix;
     StaticThreadPool m_Pool;
     QList<Node*> m_Results;
     Node *m_RootNode;

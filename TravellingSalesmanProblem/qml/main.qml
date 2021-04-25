@@ -16,7 +16,7 @@ ApplicationWindow {
 
     header: Rectangle {
         height: 40
-        color: "#1C1E23"
+        color: "#282C35"
         TabBar {
             anchors.horizontalCenter: parent.horizontalCenter
             width: 800

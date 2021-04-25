@@ -5,5 +5,9 @@
         <file>qml/baseComponents/RButton.qml</file>
         <file>qml/tabs/BBProfiler.qml</file>
         <file>qml/baseComponents/RTabButton.qml</file>
+        <file>qml/baseComponents/RComboBox.qml</file>
+        <file>qml/components/BBSettings.qml</file>
+        <file>qml/components/GASettings.qml</file>
+        <file>qml/baseComponents/RTextField.qml</file>
     </qresource>
 </RCC>

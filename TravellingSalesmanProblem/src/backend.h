@@ -6,6 +6,7 @@
 #include "tablemodel.h"
 #include "drawingalgorithm.h"
 #include "staticthreadpool.h"
+#include "ialgorithm.h"
 
 class Node;
 class BranchAndBound;
@@ -22,25 +23,35 @@ class Backend : public QObject {
     Q_PROPERTY(QAbstractTableModel* penaltyMatrix READ getPenaltyMatrix NOTIFY penaltyMatrixChanged)
 
     Q_PROPERTY(QAbstractTableModel* profilerTable READ getProfilerTable NOTIFY profilerTableChanged)
+
+    /*!
+      Algorithm
+    */
+    Q_PROPERTY(IAlgorithm* currentAlgorithm READ getCurrentAlgorithm NOTIFY algorithmChanged)
+    Q_PROPERTY(int currentAlgorithmIndex READ getCurrentAlgorithmIndex WRITE setCurrentAlgorithmIndex NOTIFY currentAlgorithmIndexChanged)
     /*!
         Path from branch and bound alg
     */
-    Q_PROPERTY(QString optimalPathBB READ getOptimalPathBB WRITE setOptimalPathBB NOTIFY optimalPathBBChanged)
+    Q_PROPERTY(QString optimalPath READ getOptimalPath WRITE setOptimalPath NOTIFY optimalPathChanged)
 public:
     explicit Backend(QObject *parent = nullptr);
 
     Q_INVOKABLE void openGraphMatrixFile(const QUrl &url);
     Q_INVOKABLE void openPenaltyMatrixFile(const QUrl &url);
     Q_INVOKABLE void enablePenalties();
-    Q_INVOKABLE void startBB();
-    Q_INVOKABLE void startGA();
+    Q_INVOKABLE GraphMatrix getLoadedMatrix();
 
     QAbstractTableModel* getGraphMatrix() const;
     QAbstractTableModel* getPenaltyMatrix() const;
     QAbstractTableModel* getProfilerTable() const;
 
-    QString getOptimalPathBB() const;
-    void setOptimalPathBB(const QString& path);
+    IAlgorithm* getCurrentAlgorithm() const;
+
+    QString getOptimalPath() const;
+    void setOptimalPath(const QString& path);
+
+    int getCurrentAlgorithmIndex() const;
+    void setCurrentAlgorithmIndex(int index);
 private slots:
     void onBbFinished(Node *endNode, Node *rootNode);
     void onGaFinished(double optimalDistance, QList<int> optimalPath);
@@ -51,14 +62,16 @@ signals:
     void penaltyMatrixChanged();
     void profilerTableChanged();
     void adjacencyMatrixLoaded(const GraphMatrix& matrix);
-    void optimalPathBBChanged();
+    void optimalPathChanged();
     void graphPathChanged(const QList<QPair<int, int>>& path);
     void treeNodeReceived(Node *node);
+    void algorithmChanged();
+    void currentAlgorithmIndexChanged();
 private:
     TableModel *m_GraphMatrixModel, *m_PenaltyMatrixModel, *m_ProfilerTableModel;
-    BranchAndBound *m_BranchAndBound;
-    GeneticAlgorithm *m_GeneticAlgorithm;
-    QString m_OptimalPathBB;
+    QList<IAlgorithm*> m_Algorithms;
+    int m_CurrentAlgorithmIndex;
+    QList<QString> m_OptimalPaths;
     StaticThreadPool m_Pool;
     GraphMatrix m_Matrix, m_PenaltiedMatrix, m_Penalties;
     bool m_PenaltiesEnabled = false;
