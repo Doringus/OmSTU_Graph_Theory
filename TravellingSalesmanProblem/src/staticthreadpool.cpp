@@ -5,7 +5,7 @@
 #include "branchandbound.h"
 
 StaticThreadPool::StaticThreadPool(QObject *parent) : QObject(parent) {
-    for(int i = 0; i < 6; ++i) {
+    for(int i = 0; i < 8; ++i) {
         QThread *thread = QThread::create([this](){
             workerRoutine();
          });

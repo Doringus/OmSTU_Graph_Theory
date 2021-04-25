@@ -44,7 +44,9 @@ void Backend::openGraphMatrixFile(const QUrl& url) {
     QList<QList<double>> r = loader.load(url);
     m_Matrix = r;
     m_GraphMatrixModel->setMatrix(r);
-    emit adjacencyMatrixLoaded(r);
+    if(m_Matrix.count() < 10) {
+        emit adjacencyMatrixLoaded(r);
+    }
     multiplyMatrix();
 }
 
@@ -122,8 +124,10 @@ void Backend::onBbFinished(Node *endNode, Node *rootNode) {
     }
     path += "\nДлина: " + QString::number(endNode->getWeight());
     setOptimalPath(path);
-    emit graphPathChanged(endNode->getIncludedEdges());
-    emit treeNodeReceived(rootNode);
+    if(m_Matrix.count() < 10) {
+        emit graphPathChanged(endNode->getIncludedEdges());
+        emit treeNodeReceived(rootNode);
+    }
 }
 
 void Backend::onGaFinished(double optimalDistance, QList<int> optimalPath) {
@@ -140,7 +144,9 @@ void Backend::onGaFinished(double optimalDistance, QList<int> optimalPath) {
         edges.append({optimalPath.at(i - 1), optimalPath.at(i)});
     }
     edges.append({optimalPath.last(), optimalPath.first()});
-    emit graphPathChanged(edges);
+    if(m_Matrix.count() < 10) {
+        emit graphPathChanged(edges);
+    }
 }
 
 void Backend::multiplyMatrix() {

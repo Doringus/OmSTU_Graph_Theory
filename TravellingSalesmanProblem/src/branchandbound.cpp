@@ -78,20 +78,32 @@ void BBTask::createNextBranch(const QPair<int, int>& edge) {
     Node *leftNode = Node::createChild(m_CurrentNode);
     Node *rightNode = Node::createChild(m_CurrentNode);
 
+    int count = m_CurrentNode->getMatrix().count();
+
     /// Clear parent node fields to save memory
     m_CurrentNode->getMatrixRef().clear();
     m_CurrentNode->getMatrixRef().squeeze();
     if(Q_LIKELY(m_CurrentNode->hasEdges())) {
         m_CurrentNode->clearUnusedData();
     }
-    m_CurrentNode->setLeftChild(leftNode);
-    m_CurrentNode->setRightChild(rightNode);
+    if(count < 10) {
+        m_CurrentNode->setLeftChild(leftNode);
+        m_CurrentNode->setRightChild(rightNode);
+    } else {
+        leftNode->setParent(nullptr);
+        rightNode->setParent(nullptr);
+    }
+
 
     bb::createLeftNode(leftNode, edge);
     bb::createRightNode(rightNode, edge);
     if(rightNode->getWeight() == leftNode->getWeight() && m_TotalVerticesCount - m_CurrentNode->getVisitedVerticesCount() > 2) {
         BBTask *task = createBBTask<BranchTask>(rightNode, m_TopBound, m_TotalVerticesCount);
         emit subtaskCreated(task);
+    }
+
+    if(count >= 10) {
+        delete m_CurrentNode;
     }
     if(rightNode->getWeight() < leftNode->getWeight()) {
         if(Q_UNLIKELY(rightNode->getWeight() > m_TopBound)) {
@@ -102,6 +114,9 @@ void BBTask::createNextBranch(const QPair<int, int>& edge) {
             return;
         }
         m_CurrentNode = rightNode;
+        if(count >= 10) {
+            delete leftNode;
+        }
     } else {
         if(Q_UNLIKELY(leftNode->getWeight() > m_TopBound)) {
             m_CurrentNode = leftNode;
@@ -111,6 +126,9 @@ void BBTask::createNextBranch(const QPair<int, int>& edge) {
             return;
         }
         m_CurrentNode = leftNode;
+        if(count > 10) {
+            delete rightNode;
+        }
     }
 }
 
@@ -165,22 +183,25 @@ void BranchAndBound::findOptimalPath() {
     Node *endNode = node;
     m_Results.removeOne(endNode);
     /* Mark optimal path */
-    while (node != m_RootNode) {
-        node->setIsInPath(true);
-        if(node->getParent() == nullptr && node->getBrother()) {
-            // swap subtrees
-            std::swap(node->getBrother()->getLeftChildRef(), node->getLeftChildRef());
-            std::swap(node->getBrother()->getRightChildRef(), node->getRightChildRef());
-            std::swap(node->getBrother()->getLeftChild()->getParentRef(), node->getLeftChild()->getParentRef());
-            std::swap(node->getBrother()->getRightChild()->getParentRef(), node->getRightChild()->getParentRef());
-            node->setIsInPath(false);
-            Node* brother = node->getBrother();
-            node->setBrother(nullptr);
-            node = brother;
-        } else {
-            node = node->getParent();
+    if(m_Matrix.count() < 10) {
+        while (node != m_RootNode) {
+            node->setIsInPath(true);
+            if(node->getParent() == nullptr && node->getBrother()) {
+                // swap subtrees
+                std::swap(node->getBrother()->getLeftChildRef(), node->getLeftChildRef());
+                std::swap(node->getBrother()->getRightChildRef(), node->getRightChildRef());
+                std::swap(node->getBrother()->getLeftChild()->getParentRef(), node->getLeftChild()->getParentRef());
+                std::swap(node->getBrother()->getRightChild()->getParentRef(), node->getRightChild()->getParentRef());
+                node->setIsInPath(false);
+                Node* brother = node->getBrother();
+                node->setBrother(nullptr);
+                node = brother;
+            } else {
+                node = node->getParent();
+            }
         }
     }
+
     /* Clean other paths */
     for(auto n : m_Results) {
         while (n && !n->isInPath()) {
@@ -205,6 +226,9 @@ void BranchAndBound::findOptimalPath() {
         }
     }
     qDebug() << endNode->getWeight() << "\n\n";
+    if(m_Matrix.count() >= 10) {
+        m_RootNode = endNode;
+    }
     emit bbFinished(endNode, m_RootNode);
     // for profiler
     emit finished();
