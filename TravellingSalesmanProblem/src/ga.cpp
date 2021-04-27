@@ -191,8 +191,8 @@ QList<QList<int>> ga::pmx(const QList<int>& p1, const QList<int>& p2) {
 }
 
 
-QList<QList<int>> ga::pos(const QList<int> &p1, const QList<int> &p2) {
-    std::uniform_int_distribution<int> d(0, p1.count() / 2);
+QList<QList<int>> ga::pos(QList<int>& p1, QList<int>& p2) {
+    std::uniform_int_distribution<int> d(1, p1.count() / 2);
     std::uniform_int_distribution<int> positionsDist(0, p1.count() - 1);
     QList<int> child1(p1.count());
     QList<int> child2(p2.count());
@@ -211,10 +211,77 @@ QList<QList<int>> ga::pos(const QList<int> &p1, const QList<int> &p2) {
     for(const auto& p : positions) {
         child2[p] = p1.at(p);
     }
+    // Fill children
+    int j = 0;
+    for(int i = 0; i < p1.count(); ++i) {
+        if(child1.contains(p1.at(i))) {
+            continue;
+        }
+        for(;j < child1.count(); ++j) {
+            if(child1.at(j) == -1) {
+                child1[j] = p1.at(i);
+                j++;
+                break;
+            }
+        }
+    }
 
+    j = 0;
+    for(int i = 0; i < p1.count(); ++i) {
+        if(child2.contains(p2.at(i))) {
+            continue;
+        }
+        for(;j < child2.count(); ++j) {
+            if(child2.at(j) == -1) {
+                child2[j] = p2.at(i);
+                j++;
+                break;
+            }
+        }
+    }
 
+    return {child1, child2};
+}
 
-    return QList<QList<int>>();
+QList<QList<int>> ga::ox2(QList<int>& p1, QList<int>& p2) {
+    std::uniform_int_distribution<int> countDist(1, p1.count() / 2);
+    std::uniform_int_distribution<int> positionsDist(0, p1.count() - 1);
+    QList<int> child1(p1.count());
+    QList<int> child2(p2.count());
+
+    int count = countDist(*QRandomGenerator::global());
+    QSet<int> positions;
+    for(int i = 0; i < count; ++i) {
+        positions.insert(positionsDist(*QRandomGenerator::global()));
+    }
+    QList<int> p2Slice;
+    for(const auto& p : positions) {
+        p2Slice.append(p2.at(p));
+    }
+    QList<int> p1Slice;
+    for(const auto& p : positions) {
+        p1Slice.append(p1.at(p));
+    }
+    // Create childrens
+    int sliceIndex = 0;
+    for(int i = 0; i < p1.count(); ++i) {
+        if(p2Slice.contains(p1.at(i))) {
+            child1[i] = p2Slice.at(sliceIndex);
+            sliceIndex++;
+        } else {
+            child1[i] = p1[i];
+        }
+    }
+    sliceIndex = 0;
+    for(int i = 0; i < p2.count(); ++i) {
+        if(p1Slice.contains(p2.at(i))) {
+            child2[i] = p1Slice.at(sliceIndex);
+            sliceIndex++;
+        } else {
+            child2[i] = p2[i];
+        }
+    }
+    return {child1, child2};
 }
 
 void ga::swapMutation(QList<int>& individual) {
@@ -225,6 +292,4 @@ void ga::swapMutation(QList<int>& individual) {
     }
     individual.swapItemsAt(first, second);
 }
-
-
 

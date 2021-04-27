@@ -11,7 +11,7 @@ typedef QList<QList<int>> Population;
 /**
  *  Parallel (on CPU) GA built in master-slave model
  *  Used modified version - PREGA (https://www.hindawi.com/journals/tswj/2014/178621/)
- *  Crossovers: PMX, POS
+ *  Crossovers: PMX, POS, OX2
  *  Mutations: swap genes(elements in array), take random sub tour and place it in random place
 */
 
@@ -55,7 +55,15 @@ namespace ga {
     /// \param p2 - parent 2
     /// \return returns children
     ///
-    QList<QList<int>> pos(const QList<int>& p1, const QList<int>& p2);
+    QList<QList<int>> pos(QList<int>& p1, QList<int>& p2);
+
+    ///
+    /// \brief ox2 - order based crossover
+    /// \param p1
+    /// \param p2
+    /// \return
+    ///
+    QList<QList<int>> ox2(QList<int>& p1, QList<int>& p2);
 
     ///
     /// \brief swapMutation
