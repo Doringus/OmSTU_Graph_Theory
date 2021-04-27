@@ -187,7 +187,7 @@ QList<QList<int>> ga::pmx(const QList<int>& p1, const QList<int>& p2) {
         }
     }
 
-    return QList<QList<int>> {child1, child2};
+    return {child1, child2};
 }
 
 
@@ -293,3 +293,11 @@ void ga::swapMutation(QList<int>& individual) {
     individual.swapItemsAt(first, second);
 }
 
+
+void ga::inversionMutation(QList<int>& individual) {
+    std::uniform_int_distribution<int> d(0, individual.count() - 1);
+    int position = d(*QRandomGenerator::global());
+    std::uniform_int_distribution<int> countD(1,individual.count() - position);
+    int count = countD(*QRandomGenerator::global());
+    std::reverse(individual.begin() + position, individual.begin() + position + count);
+}

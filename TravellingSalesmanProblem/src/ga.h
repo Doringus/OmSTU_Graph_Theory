@@ -10,9 +10,8 @@ typedef QList<QList<int>> Population;
 
 /**
  *  Parallel (on CPU) GA built in master-slave model
- *  Used modified version - PREGA (https://www.hindawi.com/journals/tswj/2014/178621/)
  *  Crossovers: PMX, POS, OX2
- *  Mutations: swap genes(elements in array), take random sub tour and place it in random place
+ *  Mutations: swap, inversion
 */
 
 
@@ -66,10 +65,16 @@ namespace ga {
     QList<QList<int>> ox2(QList<int>& p1, QList<int>& p2);
 
     ///
-    /// \brief swapMutation
+    /// \brief swapMutation - swaps two random elements in array
     /// \param individual
     ///
     void swapMutation(QList<int>& individual);
+
+    ///
+    /// \brief inversionMutation
+    /// \param individual
+    ///
+    void inversionMutation(QList<int>& individual);
 
     /// mapping for pmx crossover
     class MappingList {
