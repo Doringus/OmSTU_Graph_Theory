@@ -13,16 +13,23 @@ public:
     explicit StaticThreadPool(QObject *parent = nullptr);
     ~StaticThreadPool();
 public slots:
-    void putTask(BBTask *task);
-signals:
-    void taskFinished(Node *endNode);
+    void putTask(Task *task);
 private:
     void workerRoutine();
-private slots:
-    void handleBB(Node *endNode);
 private:
     QList<QThread*> m_Threads;
     TaskQueue m_TaskQueue;
     int m_TaskCount = 0;
 };
 
+class IExecutor : public QObject {
+    Q_OBJECT
+public:
+    IExecutor(QObject *parent = nullptr) : QObject(parent) {}
+    virtual void putTask(Task *task) = 0;
+    void setThreadPool(StaticThreadPool* pool) {
+        m_Pool = pool;
+    }
+protected:
+    StaticThreadPool *m_Pool;
+};

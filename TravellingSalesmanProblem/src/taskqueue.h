@@ -7,20 +7,25 @@
 
 class BBTask;
 
+class Task : public QObject {
+    Q_OBJECT
+public:
+    Task(QObject *parent) : QObject(parent){}
+    virtual void run() = 0;
+};
+
 class TaskQueue : public QObject {
     Q_OBJECT
 public:
     explicit TaskQueue(QObject *parent = nullptr);
 
-    void put(BBTask *task);
+    void put(Task *task);
 
-    BBTask* take();
-
-signals:
+    Task* take();
 private:
-    BBTask* takeLocked();
+    Task* takeLocked();
 private:
-    QQueue<BBTask*> m_Buffer;
+    QQueue<Task*> m_Buffer;
     QMutex m_Mutex;
     QWaitCondition m_Wc;
 };

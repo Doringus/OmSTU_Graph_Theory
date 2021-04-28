@@ -20,9 +20,7 @@ StaticThreadPool::~StaticThreadPool() {
     }
 }
 
-void StaticThreadPool::putTask(BBTask *task) {
-    connect(task, &BBTask::finished, this, &StaticThreadPool::handleBB, Qt::BlockingQueuedConnection);
-    connect(task, &BBTask::subtaskCreated, this, &StaticThreadPool::putTask, Qt::BlockingQueuedConnection);
+void StaticThreadPool::putTask(Task *task) {
     m_TaskCount++;
     m_TaskQueue.put(task);
 }
@@ -34,13 +32,5 @@ void StaticThreadPool::workerRoutine() {
         if(task != nullptr) {
             task->run();
         }
-    }
-}
-
-void StaticThreadPool::handleBB(Node *endNode) {
-    m_TaskCount--;
-    emit taskFinished(endNode);
-    if(m_TaskCount == 0) {
-        emit taskFinished(nullptr);
     }
 }

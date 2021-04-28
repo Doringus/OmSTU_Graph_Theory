@@ -7,6 +7,7 @@
 
 #include "ialgorithm.h"
 #include "staticthreadpool.h"
+#include "bbexecutor.h"
 
 class Node {
 public:
@@ -84,12 +85,12 @@ Task* createBBTask(Params ...args) {
     return task;
 }
 
-class BBTask : public QObject {
+class BBTask : public Task {
     Q_OBJECT
 public:
-    explicit BBTask(Node *rootNode, double topBound, int totalVerticesCount, QObject *parent = nullptr) : QObject(parent),
+    explicit BBTask(Node *rootNode, double topBound, int totalVerticesCount, QObject *parent = nullptr) : Task(parent),
                                    m_TopBound(topBound), m_TotalVerticesCount(totalVerticesCount){ m_CurrentNode = rootNode;}
-    virtual void run() = 0;
+    virtual void run() override = 0;
 
     double getTopBound() const { return m_TopBound;}
     Node* getCurrentNode() const {return m_CurrentNode;}
@@ -139,6 +140,7 @@ private:
     void deleteOldTree();
 private:
     GraphMatrix m_Matrix;
+    BBExecutor m_Executor;
     StaticThreadPool m_Pool;
     QList<Node*> m_Results;
     Node *m_RootNode;

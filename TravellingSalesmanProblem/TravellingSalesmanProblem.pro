@@ -7,10 +7,13 @@ CONFIG += c++17
 
 SOURCES += \
         src/backend.cpp \
+        src/bbexecutor.cpp \
         src/bbprofiler.cpp \
         src/branchandbound.cpp \
         src/fruchtermanreingold.cpp \
         src/ga.cpp \
+        src/gaexecutor.cpp \
+        src/gafunctions.cpp \
         src/graphdrawer.cpp \
         src/graphlayout.cpp \
         src/main.cpp \
@@ -36,12 +39,15 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     src/backend.h \
+    src/bbexecutor.h \
     src/bbprofiler.h \
     src/branchandbound.h \
     src/common.h \
     src/drawingalgorithm.h \
     src/fruchtermanreingold.h \
     src/ga.h \
+    src/gaexecutor.h \
+    src/gafunctions.h \
     src/graphdrawer.h \
     src/graphlayout.h \
     src/ialgorithm.h \

@@ -11,6 +11,7 @@
 #include "treedrawer.h"
 #include "pdfwriter.h"
 #include "profilerbackend.h"
+#include "ga.h"
 
 int main(int argc, char *argv[]) {
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
@@ -31,6 +32,10 @@ int main(int argc, char *argv[]) {
     qmlRegisterType<FruchtermanReingold>("GraphDrawer", 1, 0, "FruchtermanReingold");
     qmlRegisterType<TreeDrawer>("BranchAndBound", 1, 0, "TreeDrawer");
     qmlRegisterType<PdfWriter>("Utils", 1, 0, "PdfWriter");
+    qmlRegisterUncreatableType<Crossover>("Utils", 1, 0, "CrossoverType",
+                                                 "Cannot create CrossoverType in QML");
+    qmlRegisterUncreatableType<Mutation>("Utils", 1, 0, "MutationType",
+                                                 "Cannot create MutationType in QML");
     Backend *backend = new Backend();
     ProfilerBackend *profilerBackend = new ProfilerBackend();
     engine.rootContext()->setContextProperty("Backend", backend);

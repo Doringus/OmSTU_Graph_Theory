@@ -5,6 +5,8 @@
 #include <QPair>
 
 #include "ialgorithm.h"
+#include "gaexecutor.h"
+#include "gafunctions.h"
 
 typedef QList<QList<int>> Population;
 
@@ -14,126 +16,61 @@ typedef QList<QList<int>> Population;
  *  Mutations: swap, inversion
 */
 
-
-namespace ga {
-    ///
-    /// \brief takeOne - takes one individual from population by roulette selection
-    /// \param population - list of individuals
-    /// \param fitness - list of calculated fitness
-    /// \return returns taken individual
-    ///
-    const QList<int> takeOne(const Population& population, const QList<double>& fitness);
-
-    ///
-    /// \brief calculateFitness - calculates value = 1 / distance
-    /// \param matrix - graph matrix
-    /// \param individual - path
-    /// \return returns calculated value
-    ///
-    double calculateFitness(const GraphMatrix& matrix, const QList<int>& individual);
-
-    double calculateDistance(const GraphMatrix& matrix, const QList<int>& individual);
-
-    ///
-    /// \brief normalizeFitness
-    /// \param fitness
-    ///
-    void normalizeFitness(QList<double>& fitness);
-
-    ///
-    /// \brief pmx crossover function
-    /// \param p1 - parent 1
-    /// \param p2 - parent 2
-    /// \return returns children
-    ///
-    QList<QList<int>> pmx(const QList<int>& p1, const QList<int>& p2);
-
-    ///
-    /// \brief pos - position based crossover
-    /// \param p1 - parent 1
-    /// \param p2 - parent 2
-    /// \return returns children
-    ///
-    QList<QList<int>> pos(QList<int>& p1, QList<int>& p2);
-
-    ///
-    /// \brief ox2 - order based crossover
-    /// \param p1
-    /// \param p2
-    /// \return
-    ///
-    QList<QList<int>> ox2(QList<int>& p1, QList<int>& p2);
-
-    ///
-    /// \brief swapMutation - swaps two random elements in array
-    /// \param individual
-    ///
-    void swapMutation(QList<int>& individual);
-
-    ///
-    /// \brief inversionMutation
-    /// \param individual
-    ///
-    void inversionMutation(QList<int>& individual);
-
-    /// mapping for pmx crossover
-    class MappingList {
-        QList<QPair<int, int>> m_Mappings;
-    public:
-        MappingList() {}
-        void appendMapping(QPair<int, int> mapping) {
-            m_Mappings.append(std::move(mapping));
-        }
-
-        QList<QPair<int, int>> getMappings() const noexcept {
-            return m_Mappings;
-        }
-
-        int mapFirst(int gen) {
-            auto hasPair = [&](int first) -> std::optional<int> {
-                for(const auto& m : m_Mappings) {
-                    if(m.first == first) {
-                        return m.second;
-                    }
-                }
-                return std::nullopt;
-            };
-            int result = gen;
-            std::optional<int> pair = hasPair(gen);
-            while(pair) {
-                result = *pair;
-                pair = hasPair(result);
-            }
-            return result;
-        }
-
-        int mapSecond(int gen) {
-            auto hasPair = [&](int second) -> std::optional<int> {
-                for(const auto& m : m_Mappings) {
-                    if(m.second == second) {
-                        return m.first;
-                    }
-                }
-                return std::nullopt;
-            };
-            int result = gen;
-            std::optional<int> pair = hasPair(gen);
-            while(pair) {
-                result = *pair;
-                pair = hasPair(result);
-            }
-            return result;
-        }
+class Crossover : public QObject {
+    Q_OBJECT
+public:
+    enum class Enum {
+        PMX = 0,
+        POS = 1,
+        OX2 = 2
     };
-}
+    Q_ENUM(Enum)
+};
+
+class Mutation : public QObject {
+    Q_OBJECT
+public:
+    enum class Enum {
+        SWAP = 0,
+        INVERSION = 1
+    };
+    Q_ENUM(Enum)
+};
+
+
+class GATask : public Task {
+    Q_OBJECT
+public:
+    GATask(QObject *parent, const ga::individual_t& p1, const ga::individual_t& p2, const GraphMatrix& matrix,
+           Crossover::Enum crossoverType, Mutation::Enum mutationType);
+
+    virtual void run() override;
+signals:
+    void finished(QList<ga::individual_t> children);
+private:
+    ga::individual_t m_Parent1, m_Parent2;
+    const GraphMatrix& m_Matrix;
+    Crossover::Enum m_CrossoverType;
+    Mutation::Enum m_MutationType;
+};
+
+
 
 class GeneticAlgorithm : public IAlgorithm {
     Q_OBJECT
 
     Q_PROPERTY(int populationSize READ getPopulationSize WRITE setPopulationSize NOTIFY populationSizeChanged)
     Q_PROPERTY(int generations READ getGenerations WRITE setGenerations NOTIFY generationsChanged)
+    Q_PROPERTY(int crossoverType READ getCrossoverType WRITE setCrossoverType NOTIFY crossoverTypeChanged)
+    Q_PROPERTY(int mutationType READ getMutationType WRITE setMutationType NOTIFY mutationTypeChanged)
 public:
-    GeneticAlgorithm(QObject *parent = nullptr) : IAlgorithm(parent), m_Generations(20), m_PopulationSize(10) {}
+    GeneticAlgorithm(QObject *parent = nullptr) : IAlgorithm(parent), m_Generations(20), m_PopulationSize(10), m_CurrentGeneration(0) {
+        m_Executor.setThreadPool(new StaticThreadPool(this));
+        connect(&m_Executor, &GAExecutor::taskFinished, this, &GeneticAlgorithm::onGATaskFinished);
+        m_Crossover = Crossover::Enum::PMX;
+        m_Mutation = Mutation::Enum::SWAP;
+
+    }
     Q_INVOKABLE virtual void start(const GraphMatrix& matrix) override;
 
     int getPopulationSize() const noexcept;
@@ -141,18 +78,32 @@ public:
 
     int getGenerations() const noexcept;
     void setGenerations(int generations) noexcept;
+
+    int getCrossoverType() const noexcept;
+    void setCrossoverType(int type) noexcept;
+
+    int getMutationType() const noexcept;
+    void setMutationType(int type) noexcept;
+
+    void iterate();
+
 signals:
     void finished(double optimalPath, QList<int> path);
     void populationSizeChanged();
     void generationsChanged();
+    void crossoverTypeChanged();
+    void mutationTypeChanged();
 private:
     void findBestPath();
-    void calculateFitness();
+private slots:
+    void onGATaskFinished(QList<ga::individual_t> children);
 private:
     GraphMatrix m_Matrix;
-    Population m_CurrentPopulation;
-    QList<double> m_CurrentFitness;
-    double m_BestSoFar;
-    int m_PopulationSize, m_Generations;
+    QList<ga::individual_t> m_CurrentPopulation;
+    ga::individual_t m_BestSoFar;
+    int m_PopulationSize, m_Generations, m_CurrentGeneration;
     QList<int> m_BestSoFarPath;
+    GAExecutor m_Executor;
+    Crossover::Enum m_Crossover;
+    Mutation::Enum m_Mutation;
 };
