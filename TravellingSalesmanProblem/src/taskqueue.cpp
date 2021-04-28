@@ -6,13 +6,13 @@ TaskQueue::TaskQueue(QObject *parent) : QObject(parent) {
 
 }
 
-void TaskQueue::put(Task *task) {
+void TaskQueue::put(std::shared_ptr<Task> task) {
     QMutexLocker locker(&m_Mutex);
-    m_Buffer.push_back(task);
+    m_Buffer.push_back(std::move(task));
     m_Wc.wakeOne();
 }
 
-Task* TaskQueue::take() {
+std::shared_ptr<Task> TaskQueue::take() {
     QMutexLocker locker(&m_Mutex);
     while(m_Buffer.empty()) {
         m_Wc.wait(&m_Mutex);
@@ -20,8 +20,8 @@ Task* TaskQueue::take() {
     return takeLocked();
 }
 
-Task* TaskQueue::takeLocked() {
-    Task *front = m_Buffer.front();
+std::shared_ptr<Task> TaskQueue::takeLocked() {
+    auto front = std::move(m_Buffer.front());
     m_Buffer.pop_front();
     return front;
 }

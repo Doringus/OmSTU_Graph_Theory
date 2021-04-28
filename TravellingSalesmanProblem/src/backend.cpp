@@ -28,8 +28,6 @@ Backend::Backend(QObject *parent) : QObject(parent), m_GraphMatrixModel(new Tabl
                                                     m_PenaltyMatrixModel(new TableModel(this)),
                                                     m_ProfilerTableModel(new TableModel(this)),
                                                     m_CurrentAlgorithmIndex(0) {
-//    connect(m_BranchAndBound, &BranchAndBound::bbFinished, this, &Backend::onBbFinished, Qt::QueuedConnection);
-//    connect(m_GeneticAlgorithm, &GeneticAlgorithm::finished, this, &Backend::onGaFinished, Qt::QueuedConnection);
     m_OptimalPaths.fill("", 2);
     BranchAndBound *bb = new BranchAndBound(this);
     connect(bb, &BranchAndBound::bbFinished, this, &Backend::onBbFinished, Qt::QueuedConnection);
@@ -103,6 +101,7 @@ void Backend::setCurrentAlgorithmIndex(int index) {
     m_CurrentAlgorithmIndex = index;
     emit currentAlgorithmIndexChanged();
     emit algorithmChanged();
+    emit optimalPathChanged();
 }
 
 void Backend::onBbFinished(Node *endNode, Node *rootNode) {

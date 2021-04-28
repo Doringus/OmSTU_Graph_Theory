@@ -11,7 +11,7 @@ void BBExecutor::putTask(Task *task) {
     connect(bbTask, &BBTask::finished, this, &BBExecutor::handleBB, Qt::BlockingQueuedConnection);
     connect(bbTask, &BBTask::subtaskCreated, this, &BBExecutor::putTask, Qt::BlockingQueuedConnection);
     m_TaskCount++;
-    m_Pool->putTask(bbTask);
+    m_Pool->putTask(std::shared_ptr<BBTask>(bbTask));
 }
 
 void BBExecutor::handleBB(Node *endNode) {

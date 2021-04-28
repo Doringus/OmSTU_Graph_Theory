@@ -4,13 +4,15 @@
 #include <QMutex>
 #include <QWaitCondition>
 #include <QQueue>
-
-class BBTask;
+#include <QDebug>
 
 class Task : public QObject {
     Q_OBJECT
 public:
     Task(QObject *parent) : QObject(parent){}
+    virtual ~Task() {
+        qDebug() << "SAS";
+    }
     virtual void run() = 0;
 };
 
@@ -19,13 +21,13 @@ class TaskQueue : public QObject {
 public:
     explicit TaskQueue(QObject *parent = nullptr);
 
-    void put(Task *task);
+    void put(std::shared_ptr<Task> task);
 
-    Task* take();
+    std::shared_ptr<Task> take();
 private:
-    Task* takeLocked();
+    std::shared_ptr<Task> takeLocked();
 private:
-    QQueue<Task*> m_Buffer;
+    QQueue<std::shared_ptr<Task>> m_Buffer;
     QMutex m_Mutex;
     QWaitCondition m_Wc;
 };

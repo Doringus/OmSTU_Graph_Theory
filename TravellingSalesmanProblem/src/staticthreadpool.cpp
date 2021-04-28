@@ -20,9 +20,9 @@ StaticThreadPool::~StaticThreadPool() {
     }
 }
 
-void StaticThreadPool::putTask(Task *task) {
+void StaticThreadPool::putTask(std::shared_ptr<Task> task) {
     m_TaskCount++;
-    m_TaskQueue.put(task);
+    m_TaskQueue.put(std::move(task));
 }
 
 void StaticThreadPool::workerRoutine() {

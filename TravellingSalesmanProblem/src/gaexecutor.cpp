@@ -8,7 +8,7 @@ GAExecutor::GAExecutor(QObject *parent) : IExecutor(parent) {
 void GAExecutor::putTask(Task *task) {
     GATask *ga = qobject_cast<GATask*>(task);
     connect(ga, &GATask::finished, this, &GAExecutor::handleTask, Qt::BlockingQueuedConnection);
-    m_Pool->putTask(task);
+    m_Pool->putTask(std::shared_ptr<GATask>(ga));
 }
 
 void GAExecutor::handleTask(QList<ga::individual_t> children) {

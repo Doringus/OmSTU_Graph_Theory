@@ -3,6 +3,8 @@
 #include <QObject>
 #include <QThread>
 
+#include <memory>
+
 #include "taskqueue.h"
 
 class Node;
@@ -13,7 +15,7 @@ public:
     explicit StaticThreadPool(QObject *parent = nullptr);
     ~StaticThreadPool();
 public slots:
-    void putTask(Task *task);
+    void putTask(std::shared_ptr<Task> task);
 private:
     void workerRoutine();
 private:
