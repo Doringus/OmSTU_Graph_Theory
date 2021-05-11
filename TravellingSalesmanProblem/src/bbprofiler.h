@@ -5,6 +5,7 @@
 #include <chrono>
 
 #include "branchandbound.h"
+#include "ga.h"
 
 using GraphMatrix = QList<QList<double>>;
 
@@ -14,24 +15,38 @@ struct measure_t {
     size_t startMem, endMem;
 };
 
-class BBProfiler : public QObject {
+class Profiler : public QObject {
     Q_OBJECT
 public:
-    explicit BBProfiler(QObject *parent = nullptr);
+    explicit Profiler(QObject *parent = nullptr);
 
-    Q_INVOKABLE void start();
-    Q_INVOKABLE void stop();
+    Q_INVOKABLE void startBb();
+    Q_INVOKABLE void stopBb();
+
+    Q_INVOKABLE void startGa();
+    Q_INVOKABLE void stopGa();
+
+    Q_INVOKABLE void startCuda();
+    Q_INVOKABLE void stopCuda();
 signals:
-    void testFinished(int n, double time, double memory);
+    void bbTestFinished(int n, double time, double distance);
+    void gaTestFinished(int n, double time, double distance);
+    void cudaTestFinished(int n, double time, double distance);
     void profilerFinished();
 private slots:
-    void handleTest();
-    void handleMemory();
+    void handleBbTest(double distance);
+    void handleGaTest(double distance);
+    void handleCudaTest(double distance);
 private:
     void fillRandomMatrix(size_t size, GraphMatrix &matrix);
-    void runTest();
+    void runBbTest();
+    void runGaTest();
+    void runCudaTest();
 private:
     QQueue<GraphMatrix> m_Tests;
     QList<measure_t> m_Measurements;
     BranchAndBound m_BB;
+    GeneticAlgorithm m_Ga;
+    GACudaWrapper m_Cuda;
+    int m_Index = 0;
 };

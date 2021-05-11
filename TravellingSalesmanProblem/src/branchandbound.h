@@ -132,8 +132,9 @@ public:
     void findOptimalPath();
 signals:
     void bbFinished(Node *endNode, Node *rootNode);
+
     void lastTaskFinished();
-    void finished();
+    void finished(double distance);
 private slots:
     void handleBB(Node *node);
 private:

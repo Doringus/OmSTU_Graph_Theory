@@ -97,8 +97,10 @@ void BBTask::createNextBranch(const QPair<int, int>& edge) {
 
     bb::createLeftNode(leftNode, edge);
     bb::createRightNode(rightNode, edge);
+    bool flag = false;
     if(rightNode->getWeight() == leftNode->getWeight() && m_TotalVerticesCount - m_CurrentNode->getVisitedVerticesCount() > 2) {
         BBTask *task = createBBTask<BranchTask>(rightNode, m_TopBound, m_TotalVerticesCount);
+        flag = true;
         emit subtaskCreated(task);
     }
 
@@ -126,7 +128,7 @@ void BBTask::createNextBranch(const QPair<int, int>& edge) {
             return;
         }
         m_CurrentNode = leftNode;
-        if(count > 10) {
+        if(count > 10 && !flag) {
             delete rightNode;
         }
     }
@@ -234,7 +236,7 @@ void BranchAndBound::findOptimalPath() {
     }
     emit bbFinished(endNode, m_RootNode);
     // for profiler
-    emit finished();
+    emit finished(endNode->getWeight());
 }
 
 Node::Node() : m_Parent(nullptr), m_Brother(nullptr), m_Left(nullptr), m_Right(nullptr), m_IsInPath(false),

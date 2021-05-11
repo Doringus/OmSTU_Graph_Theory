@@ -89,6 +89,7 @@ public:
 
 signals:
     void finished(double optimalPath, QList<int> path);
+    void pathReady(double distance); // for profiler
     void populationSizeChanged();
     void generationsChanged();
     void crossoverTypeChanged();
@@ -115,4 +116,5 @@ public:
     Q_INVOKABLE virtual void start(const GraphMatrix& matrix) override;
 signals:
     void finished(double optimalPath, QList<int> path);
+    void pathReady(double distance); // for profiler
 };

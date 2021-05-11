@@ -124,6 +124,7 @@ Item {
                         color: "white"
                         font.pointSize: 14
                         text: Backend.optimalPath
+                        wrapMode: "WrapAnywhere"
                         readOnly: true
                         background: Rectangle {
                             color: "transparent"

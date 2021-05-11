@@ -1,9 +1,12 @@
 #include "profilerbackend.h"
 
-ProfilerBackend::ProfilerBackend(QObject *parent) : QObject(parent), m_ProfilerTableModel(new TableModel(this)),
+ProfilerBackend::ProfilerBackend(QObject *parent) : QObject(parent), m_BbProfilerTableModel(new TableModel(this)),
+                                                    m_GaProfilerTableModel(new TableModel(this)), m_CudaProfilerTableModel(new TableModel(this)),
                                                     m_IsRunning(false) {
-    connect(&m_Profiler, &BBProfiler::testFinished, this, &ProfilerBackend::handleTest);
-    connect(&m_Profiler, &BBProfiler::profilerFinished, this, [&](){
+    connect(&m_Profiler, &Profiler::bbTestFinished, this, &ProfilerBackend::handleBbTest);
+    connect(&m_Profiler, &Profiler::gaTestFinished, this, &ProfilerBackend::handleGaTest);
+    connect(&m_Profiler, &Profiler::cudaTestFinished, this, &ProfilerBackend::handleCudaTest);
+    connect(&m_Profiler, &Profiler::profilerFinished, this, [&](){
        setIsRunning(false);
     });
 }
@@ -13,24 +16,60 @@ void ProfilerBackend::setIsRunning(bool running) {
     emit isRunningChanged();
 }
 
-QAbstractTableModel *ProfilerBackend::getProfilerTable() const {
-    return m_ProfilerTableModel;
+QAbstractTableModel *ProfilerBackend::getGaProfilerTable() const {
+    return m_GaProfilerTableModel;
+}
+
+QAbstractTableModel *ProfilerBackend::getCudaProfilerTable() const {
+    return m_CudaProfilerTableModel;
+}
+
+QAbstractTableModel *ProfilerBackend::getBbProfilerTable() const {
+    return m_BbProfilerTableModel;
 }
 
 bool ProfilerBackend::isRunning() const {
     return m_IsRunning;
 }
 
-void ProfilerBackend::startProfiler() {
+void ProfilerBackend::startBbProfiler() {
     setIsRunning(true);
-    m_ProfilerTableModel->clearTable();
-    m_Profiler.start();
+    m_BbProfilerTableModel->clearTable();
+    m_Profiler.startBb();
 }
 
-void ProfilerBackend::stopProfiler() {
-    m_Profiler.stop();
+void ProfilerBackend::stopBbProfiler() {
+    m_Profiler.stopBb();
 }
 
-void ProfilerBackend::handleTest(int verticesCount, double time, double memory) {
-    m_ProfilerTableModel->insertRow({static_cast<double>(verticesCount), time, memory});
+void ProfilerBackend::startGaProfiler() {
+    setIsRunning(true);
+    m_GaProfilerTableModel->clearTable();
+    m_Profiler.startGa();
+}
+
+void ProfilerBackend::stopGaProfiler() {
+    m_Profiler.stopGa();
+}
+
+void ProfilerBackend::startCudaProfiler() {
+    setIsRunning(true);
+    m_CudaProfilerTableModel->clearTable();
+    m_Profiler.startCuda();
+}
+
+void ProfilerBackend::stopCudaProfiler() {
+    m_Profiler.stopCuda();
+}
+
+void ProfilerBackend::handleGaTest(int verticesCount, double time, double distance) {
+    m_GaProfilerTableModel->insertRow({static_cast<double>(verticesCount), time, distance});
+}
+
+void ProfilerBackend::handleCudaTest(int verticesCount, double time, double distance) {
+    m_CudaProfilerTableModel->insertRow({static_cast<double>(verticesCount), time, distance});
+}
+
+void ProfilerBackend::handleBbTest(int verticesCount, double time, double distance) {
+    m_BbProfilerTableModel->insertRow({static_cast<double>(verticesCount), time, distance});
 }

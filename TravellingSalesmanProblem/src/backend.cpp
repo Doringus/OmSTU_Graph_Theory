@@ -45,6 +45,7 @@ void Backend::openGraphMatrixFile(const QUrl& url) {
     QList<QList<double>> r = loader.load(url);
     m_Matrix = r;
     m_GraphMatrixModel->setMatrix(r);
+
     if(m_Matrix.count() < 10) {
         emit adjacencyMatrixLoaded(r);
     }

@@ -94,6 +94,7 @@ void GeneticAlgorithm::iterate() {
         m_CurrentGeneration++;
     } else {
         emit finished(m_BestSoFar.pathLength, m_BestSoFar.path);
+        emit pathReady(m_BestSoFar.pathLength);
     }
 }
 
@@ -179,7 +180,7 @@ extern "C"
 int* gaCuda(int* graphMatrix, int matrixSize, int* population, int populationPerIslandSize, int populationSize);
 
 void GACudaWrapper::start(const GraphMatrix &matrix) {
-    int* population = new int[matrix.count() * 320];
+    int* population = new int[matrix.count() * 800];
     int* individual = new int[matrix.count()];
     int* matrixArray = new int[matrix.count() * matrix.count()];
 
@@ -194,17 +195,19 @@ void GACudaWrapper::start(const GraphMatrix &matrix) {
     std::iota(individual, individual + matrix.count(), 0);
     std::random_device rd;
     std::mt19937 g(rd());
-    for(int i = 0; i < 320; ++i) {
+    for(int i = 0; i < 800; ++i) {
         std::shuffle(individual, individual + matrix.count(), g);
         std::copy(individual, individual + matrix.count(), population + (i * matrix.count()));
     }
-    int* result = gaCuda(matrixArray, matrix.count(), population, 80  ,320);
+    int* result = gaCuda(matrixArray, matrix.count(), population, 200  ,800);
     QList<int> resultList;
     for(int i = 0; i < matrix.count(); ++i) {
         resultList.append(result[i]);
     }
     double distance = ga::calculateDistance(matrix, resultList);
-    emit finished(distance, resultList);
     delete [] individual;
     free(result);
+    emit finished(distance, resultList);
+    emit pathReady(distance);
+
 }

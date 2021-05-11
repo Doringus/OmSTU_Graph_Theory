@@ -259,7 +259,7 @@ int* gaCuda(int* graphMatrix, int matrixSize, int* population, int populationPer
     gpuErrchk(cudaPeekAtLastError());
 
     fitnessKernel<<<numBlocks, threadsPerBlock>>>(matrixArray, population1d, fitnessArray, populationPerIslandSize, matrixSize);
-    for(int i = 0; i < 2000; ++i) {
+    for(int i = 0; i < 2500; ++i) {
         initRandomKernel<<<numBlocks, threadsPerBlock>>>(time(0), states);
         gpuErrchk(cudaPeekAtLastError());
         uniformRandomSelectionKernel<<<numBlocks, threadsPerBlock>>>(states, selectionRandomArray);
@@ -272,9 +272,9 @@ int* gaCuda(int* graphMatrix, int matrixSize, int* population, int populationPer
         fitnessKernel<<<numBlocks, threadsPerBlock>>>(matrixArray, nextPopulation1d, fitnessArray, populationPerIslandSize, matrixSize);
         gpuErrchk(cudaPeekAtLastError());
         if(i % 100 == 0 && i != 0) {
-            copyToMigrationPoolKernel<<<numBlocks, threadsNumberForMigration>>>(population1d, migrationPool, 1, matrixSize);
+        //    copyToMigrationPoolKernel<<<numBlocks, threadsNumberForMigration>>>(population1d, migrationPool, 1, matrixSize);
             gpuErrchk(cudaPeekAtLastError());
-            copyFromMigrationPoolKernel<<<numBlocks, threadsNumberForMigration>>>(population1d, migrationPool, 1, matrixSize);
+        //    copyFromMigrationPoolKernel<<<numBlocks, threadsNumberForMigration>>>(population1d, migrationPool, 1, matrixSize);
             gpuErrchk(cudaPeekAtLastError());
         }
         cudaDeviceSynchronize();

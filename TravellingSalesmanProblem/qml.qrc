@@ -10,5 +10,6 @@
         <file>qml/components/GASettings.qml</file>
         <file>qml/baseComponents/RTextField.qml</file>
         <file>qml/tabs/GAProfiler.qml</file>
+        <file>qml/components/ProfilerSection.qml</file>
     </qresource>
 </RCC>

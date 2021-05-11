@@ -12,42 +12,91 @@
 
 #include "branchandbound.h"
 
-BBProfiler::BBProfiler(QObject *parent) : QObject(parent) {
-    connect(&m_BB, &BranchAndBound::finished, this, &BBProfiler::handleTest);
-    connect(&m_BB, &BranchAndBound::lastTaskFinished, this, &BBProfiler::handleMemory,Qt::DirectConnection);
+Profiler::Profiler(QObject *parent) : QObject(parent) {
+    connect(&m_BB, &BranchAndBound::finished, this, &Profiler::handleBbTest);
+    connect(&m_Ga, &GeneticAlgorithm::pathReady, this, &Profiler::handleGaTest);
+    connect(&m_Cuda, &GACudaWrapper::pathReady, this, &Profiler::handleCudaTest);
+    m_Ga.setGenerations(2000);
+    m_Ga.setPopulationSize(320);
 }
 
-void BBProfiler::start() {
-    for(size_t i = 1; i < 30; ++i) {
-        GraphMatrix matrix;
-        fillRandomMatrix(i * 15, matrix);
-        m_Tests.append(matrix);
+void Profiler::startBb() {
+    if(m_Tests.empty()) {
+        for(size_t i = 1; i < 2; ++i) {
+            GraphMatrix matrix;
+            fillRandomMatrix(i * 400, matrix);
+            m_Tests.append(matrix);
+        }
     }
-    runTest();
+
+    runBbTest();
 }
 
-void BBProfiler::stop() {
+void Profiler::stopBb() {
     m_Tests.clear();
 }
 
-void BBProfiler::handleTest() {
+void Profiler::startGa() {
+    if(m_Tests.empty()) {
+        for(size_t i = 1; i < 2; ++i) {
+            GraphMatrix matrix;
+            fillRandomMatrix(i * 400, matrix);
+            m_Tests.append(matrix);
+        }
+    }
+
+    runGaTest();
+}
+
+void Profiler::stopGa() {
+    m_Tests.clear();
+}
+
+void Profiler::startCuda() {
+    if(m_Tests.empty()) {
+        for(size_t i = 1; i < 2; ++i) {
+            GraphMatrix matrix;
+            fillRandomMatrix(i * 400, matrix);
+            m_Tests.append(matrix);
+        }
+    }
+
+    runCudaTest();
+}
+
+void Profiler::stopCuda() {
+    m_Tests.clear();
+}
+
+void Profiler::handleBbTest(double distance) {
     m_Measurements.last().endTime = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double, std::milli> fp_ms = m_Measurements.last().endTime - m_Measurements.last().startTime;
     double time = fp_ms.count();
-    double memory = (m_Measurements.last().endMem - m_Measurements.last().startMem) / 1024;
-    emit testFinished(m_Measurements.last().verticesCount, time, memory);
-    runTest();
+    emit bbTestFinished(m_Measurements.last().verticesCount, time, distance);
+    m_Index++;
+    runBbTest();
 }
 
-void BBProfiler::handleMemory() {
-    PROCESS_MEMORY_COUNTERS memCounter;
-    BOOL result = GetProcessMemoryInfo(GetCurrentProcess(),
-                                       &memCounter,
-                                       sizeof(memCounter));
-    m_Measurements.last().endMem = memCounter.PeakWorkingSetSize;
+void Profiler::handleGaTest(double distance) {
+    m_Measurements.last().endTime = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> fp_ms = m_Measurements.last().endTime - m_Measurements.last().startTime;
+    double time = fp_ms.count();
+    emit gaTestFinished(m_Measurements.last().verticesCount, time, distance);
+    m_Index++;
+    runGaTest();
 }
 
-void BBProfiler::fillRandomMatrix(size_t size, GraphMatrix& matrix) {
+void Profiler::handleCudaTest(double distance) {
+    m_Measurements.last().endTime = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double, std::milli> fp_ms = m_Measurements.last().endTime - m_Measurements.last().startTime;
+    double time = fp_ms.count();
+    emit cudaTestFinished(m_Measurements.last().verticesCount, time, distance);
+    m_Index++;
+    runCudaTest();
+}
+
+
+void Profiler::fillRandomMatrix(size_t size, GraphMatrix& matrix) {
      std::uniform_real_distribution<double> dist(1.0, 200.0);
     for(size_t i = 0; i < size; ++i) {
         QList<double> row;
@@ -58,22 +107,48 @@ void BBProfiler::fillRandomMatrix(size_t size, GraphMatrix& matrix) {
     }
 }
 
-void BBProfiler::runTest() {
-    if(!m_Tests.empty()) {
+void Profiler::runGaTest() {
+    if(m_Index < m_Tests.count()) {
         measure_t measure;
         measure.startTime = std::chrono::high_resolution_clock::now();
-        PROCESS_MEMORY_COUNTERS memCounter;
-        BOOL result = GetProcessMemoryInfo(GetCurrentProcess(),
-                                           &memCounter,
-                                           sizeof(memCounter));
-        measure.startMem = memCounter.WorkingSetSize;
-        measure.verticesCount = m_Tests.front().count();
+        measure.verticesCount = m_Tests.at(m_Index).count();
         m_Measurements.append(measure);
-        m_BB.start(m_Tests.front());
-        m_Tests.pop_front();
+        m_Ga.start(m_Tests.at(m_Index));
     } else {
         qDebug() << "TESTS ENDED";
+        m_Index = 0;
+        m_Measurements.clear();
         emit profilerFinished();
     }
+}
 
+void Profiler::runCudaTest() {
+    if(m_Index < m_Tests.count()) {
+        measure_t measure;
+        measure.startTime = std::chrono::high_resolution_clock::now();
+        measure.verticesCount = m_Tests.at(m_Index).count();
+        m_Measurements.append(measure);
+        qDebug() << m_Index << m_Tests.count();
+        m_Cuda.start(m_Tests.at(m_Index));
+    } else {
+        qDebug() << "TESTS ENDED";
+        m_Index = 0;
+        m_Measurements.clear();
+        emit profilerFinished();
+    }
+}
+
+void Profiler::runBbTest() {
+    if(m_Index < m_Tests.count()) {
+        measure_t measure;
+        measure.startTime = std::chrono::high_resolution_clock::now();
+        measure.verticesCount = m_Tests.at(m_Index).count();
+        m_Measurements.append(measure);
+        m_BB.start(m_Tests.at(m_Index));
+    } else {
+        qDebug() << "TESTS ENDED";
+        m_Index = 0;
+        m_Measurements.clear();
+        emit profilerFinished();
+    }
 }
