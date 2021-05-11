@@ -31,7 +31,7 @@ ApplicationWindow {
                 }
             }
             RTabButton {
-                text: "BB"
+                text: "Бенчмарк"
                 height: parent.height
                 onClicked: {
                     stack.currentIndex = 1;

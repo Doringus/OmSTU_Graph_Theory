@@ -8,6 +8,7 @@
 
 
 void GeneticAlgorithm::start(const GraphMatrix& matrix) {
+
     m_CurrentGeneration = 0;
     if(matrix.isEmpty()) {
         return;
@@ -85,7 +86,7 @@ void GeneticAlgorithm::iterate() {
         }
         m_CurrentPopulation.clear();
         m_CurrentPopulation.squeeze();
-        for(auto p : parentsPairs) {
+        for(auto& p : parentsPairs) {
             GATask *task = new GATask(nullptr, p.first, p.second, m_Matrix, m_Crossover, m_Mutation);
             task->moveToThread(nullptr);
             m_Executor.putTask(task);
@@ -102,7 +103,8 @@ void GeneticAlgorithm::findBestPath() {
     });
     double best = (*bestFitness).fitness;
     if(best > m_BestSoFar.fitness) {
-        m_BestSoFar = m_CurrentPopulation.at(std::distance(m_CurrentPopulation.begin(), bestFitness));;
+        m_BestSoFar = m_CurrentPopulation.at(std::distance(m_CurrentPopulation.begin(), bestFitness));
+
     }
 }
 
@@ -171,4 +173,38 @@ void GATask::run() {
     ga::calculateFitness(m_Matrix, first);
     ga::calculateFitness(m_Matrix, second);
     emit finished({first, second});
+}
+
+extern "C"
+int* gaCuda(int* graphMatrix, int matrixSize, int* population, int populationPerIslandSize, int populationSize);
+
+void GACudaWrapper::start(const GraphMatrix &matrix) {
+    int* population = new int[matrix.count() * 320];
+    int* individual = new int[matrix.count()];
+    int* matrixArray = new int[matrix.count() * matrix.count()];
+
+    int index = 0;
+    for(auto& row : matrix) {
+        for(int e : row) {
+            matrixArray[index] = e;
+            index++;
+        }
+    }
+
+    std::iota(individual, individual + matrix.count(), 0);
+    std::random_device rd;
+    std::mt19937 g(rd());
+    for(int i = 0; i < 320; ++i) {
+        std::shuffle(individual, individual + matrix.count(), g);
+        std::copy(individual, individual + matrix.count(), population + (i * matrix.count()));
+    }
+    int* result = gaCuda(matrixArray, matrix.count(), population, 80  ,320);
+    QList<int> resultList;
+    for(int i = 0; i < matrix.count(); ++i) {
+        resultList.append(result[i]);
+    }
+    double distance = ga::calculateDistance(matrix, resultList);
+    emit finished(distance, resultList);
+    delete [] individual;
+    free(result);
 }

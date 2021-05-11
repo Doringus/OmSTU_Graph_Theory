@@ -28,13 +28,16 @@ Backend::Backend(QObject *parent) : QObject(parent), m_GraphMatrixModel(new Tabl
                                                     m_PenaltyMatrixModel(new TableModel(this)),
                                                     m_ProfilerTableModel(new TableModel(this)),
                                                     m_CurrentAlgorithmIndex(0) {
-    m_OptimalPaths.fill("", 2);
+    m_OptimalPaths.fill("", 3);
     BranchAndBound *bb = new BranchAndBound(this);
     connect(bb, &BranchAndBound::bbFinished, this, &Backend::onBbFinished, Qt::QueuedConnection);
     GeneticAlgorithm *ga = new GeneticAlgorithm(this);
     connect(ga, &GeneticAlgorithm::finished, this, &Backend::onGaFinished, Qt::QueuedConnection);
+    GACudaWrapper *gaCuda = new GACudaWrapper(this);
+    connect(gaCuda, &GACudaWrapper::finished, this, &Backend::onGaFinished, Qt::QueuedConnection);
     m_Algorithms.append(bb);
     m_Algorithms.append(ga);
+    m_Algorithms.append(gaCuda);
 }
 
 void Backend::openGraphMatrixFile(const QUrl& url) {

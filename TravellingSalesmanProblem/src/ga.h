@@ -107,3 +107,12 @@ private:
     Crossover::Enum m_Crossover;
     Mutation::Enum m_Mutation;
 };
+
+class GACudaWrapper : public IAlgorithm {
+    Q_OBJECT
+public:
+    GACudaWrapper(QObject* parent = nullptr) : IAlgorithm(parent) {}
+    Q_INVOKABLE virtual void start(const GraphMatrix& matrix) override;
+signals:
+    void finished(double optimalPath, QList<int> path);
+};

@@ -10,9 +10,7 @@ class Task : public QObject {
     Q_OBJECT
 public:
     Task(QObject *parent) : QObject(parent){}
-    virtual ~Task() {
-        qDebug() << "SAS";
-    }
+    virtual ~Task() {}
     virtual void run() = 0;
 };
 

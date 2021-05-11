@@ -2,19 +2,20 @@
 
 #include <QRandomGenerator>
 #include <QSet>
+#include <QDebug>
 
 #include <random>
 
 ga::individual_t ga::takeOne(QList<individual_t>& population) {
     std::uniform_real_distribution<double> d(0.0, 1.0);
     double r = d(*QRandomGenerator::global());
-    int i = 0;
-    while (r > 0 && i < population.count()) {
-        r -= population.at(i).fitness;
-        ++i;
+    double sum = 0;
+    for(auto i : population) {
+        sum += i.fitness;
+        if(r < sum) {
+            return i;
+        }
     }
-    i--;
-    return population.at(i);
 }
 
 

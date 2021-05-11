@@ -152,7 +152,7 @@ Item {
 
                     height: 50
                     width: parent.width
-                    model: ["Метод ветвей и границ", "Генетический алгоритм"]
+                    model: ["Метод ветвей и границ", "Генетический алгоритм", "CUDA"]
                     Component.onCompleted: currentIndex = Backend.currentAlgorithmIndex
                     onActivated: Backend.currentAlgorithmIndex = currentIndex
                 }
